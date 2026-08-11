@@ -53,6 +53,11 @@ def sync_command(version: str, *, prerelease: bool) -> list[str]:
     return [*command, "--dev"]
 
 
+def uv_run_command(version: str, *command: str) -> list[str]:
+    """Run from the environment installed by the explicit sync step."""
+    return ["uv", "run", "--no-sync", "--python", version, *command]
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--python", required=True)
@@ -68,10 +73,10 @@ def main() -> int:
     run(python_install_command(args.python))
     run(sync_command(args.python, prerelease=args.prerelease))
     if not args.prerelease:
-        run(["uv", "run", "--python", args.python, "ruff", "check", "src", "tests"])
-        run(["uv", "run", "--python", args.python, "ruff", "format", "--check", "src", "tests"])
-        run(["uv", "run", "--python", args.python, "ty", "check", "src", "tests"])
-    run(["uv", "run", "--python", args.python, "pytest", "tests", "-q"])
+        run(uv_run_command(args.python, "ruff", "check", "src", "tests"))
+        run(uv_run_command(args.python, "ruff", "format", "--check", "src", "tests"))
+        run(uv_run_command(args.python, "ty", "check", "src", "tests"))
+    run(uv_run_command(args.python, "pytest", "tests", "-q"))
     run(["uv", "build"])
 
     wheels = sorted(Path("dist").glob("*.whl"), key=lambda path: path.stat().st_mtime)

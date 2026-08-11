@@ -31,3 +31,13 @@ def test_prerelease_sync_installs_only_core_and_test_dependencies() -> None:
         "3.14",
         "--dev",
     ]
+    assert module["uv_run_command"]("3.15", "pytest", "tests", "-q") == [
+        "uv",
+        "run",
+        "--no-sync",
+        "--python",
+        "3.15",
+        "pytest",
+        "tests",
+        "-q",
+    ]
