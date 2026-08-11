@@ -52,6 +52,8 @@ class FakeGitHub:
             return "run: uv run mkdocs build --strict\n"
         if path == "mkdocs.yml":
             return "site_url: https://www.ml4trading.io/docs/data/\n"
+        if path == "pyproject.toml":
+            return "[dependency-groups]\ntest = []\n"
         return "present\n" if path in REQUIRED_FILES else None
 
     def labels(self, owner: str, repository: str) -> set[str]:
@@ -174,6 +176,27 @@ def test_audit_rejects_mutable_workflow_references_and_uncancelled_runs() -> Non
         "workflow.central-qualification",
         "workflow.superseded-cancellation",
     }
+
+
+def test_audit_requires_an_isolated_test_dependency_group() -> None:
+    class MissingTestGroupGitHub(FakeGitHub):
+        def content(self, owner: str, repository: str, path: str) -> str | None:
+            if path == "pyproject.toml":
+                return "[dependency-groups]\ndev = []\n"
+            return super().content(owner, repository, path)
+
+    ecosystem = config()
+    report = audit_library(
+        ecosystem,
+        ecosystem.library("data"),
+        MissingTestGroupGitHub(),
+        FakePyPI(),
+    )
+
+    check = next(
+        check for check in report.checks if check.code == "repository.test-dependency-group"
+    )
+    assert check.status == "fail"
 
 
 @pytest.mark.parametrize("version", ["invalid", "0.1.0b1"])

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import tomllib
 from datetime import UTC, datetime
 from typing import Any
 
@@ -23,6 +24,7 @@ REQUIRED_FILES = (
     ".github/PULL_REQUEST_TEMPLATE.md",
     ".github/workflows/ecosystem.yml",
     "mkdocs.yml",
+    "pyproject.toml",
 )
 REQUIRED_LABELS = {
     "type: bug",
@@ -158,6 +160,21 @@ def _check_repository(
             "workflow.central-qualification",
             _uses_pinned_central_qualification(ecosystem_workflow),
             "Repository calls an immutable central qualification workflow revision",
+        )
+    )
+
+    pyproject_text = contents["pyproject.toml"] or ""
+    try:
+        pyproject = tomllib.loads(pyproject_text)
+        test_group = pyproject.get("dependency-groups", {}).get("test")
+        has_test_group = isinstance(test_group, list)
+    except tomllib.TOMLDecodeError:
+        has_test_group = False
+    report.checks.append(
+        _result(
+            "repository.test-dependency-group",
+            has_test_group,
+            "Repository declares the isolated prerelease test dependency group",
         )
     )
     cancels_superseded = (
