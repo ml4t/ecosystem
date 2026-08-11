@@ -40,7 +40,7 @@ Use these authorities in order:
 1. PyPI metadata for the currently published package.
 2. The library's GitHub default branch for current source and workflows.
 3. The library's root `AGENTS.md` for repository-specific commands and constraints.
-4. `standards/` in this repository for requirements shared by all libraries.
+4. `docs/standards/` in this repository for requirements shared by all libraries.
 5. `status/` and `reviews/` for current and dated cross-library evidence.
 6. `.workspace/` for local work state only. It is not public policy and is not tracked here.
 
@@ -81,7 +81,7 @@ The ecosystem monitor covers all open issues and pull requests in the seven repo
 - Update a shared standard or decision when a lesson affects multiple libraries or changes a shared
   release criterion.
 
-See `standards/issues-and-pull-requests.md` for the normative requirements.
+See `docs/standards/issues-and-pull-requests.md` for the normative requirements.
 
 ## Documentation Process
 
@@ -95,7 +95,7 @@ documentation. The ecosystem repository owns the common process and index.
 - Keep user documentation in the release repository. Do not move API content into this repository.
 - Update the ecosystem index when a library, route, or adoption path changes.
 
-See `standards/documentation.md` for the deployment contract and required content categories.
+See `docs/standards/documentation.md` for the deployment contract and required content categories.
 
 ## Compatibility and Release Qualification
 
@@ -106,7 +106,7 @@ core installation and non-hardware-dependent tests on all three systems.
 An ecosystem failure blocks the affected release unless an approved exception records its scope,
 rationale, approver, and expiration date. Hardware-specific features use separate matrices.
 
-See `standards/compatibility.md` and `standards/release-qualification.md`.
+See `docs/standards/compatibility.md` and `docs/standards/release-qualification.md`.
 
 ## Ecosystem Repository Quality Gates
 

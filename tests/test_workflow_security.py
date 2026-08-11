@@ -13,3 +13,15 @@ def test_external_actions_are_pinned_to_commits() -> None:
 
     assert references
     assert all(re.search(r"@[0-9a-f]{40}$", reference) for reference in references), references
+
+
+def test_shared_qualification_requires_prerelease_or_validated_exception() -> None:
+    workflow = (
+        Path(__file__).parents[1] / ".github" / "workflows" / "qualify-library.yml"
+    ).read_text(encoding="utf-8")
+
+    assert "prerelease-exception:" in workflow
+    assert "if: ${{ inputs.prerelease-exception == '' }}" in workflow
+    assert "if: ${{ inputs.prerelease-exception != '' }}" in workflow
+    assert "scripts/validate_exception.py" in workflow
+    assert "--repository ${{ github.repository }}" in workflow

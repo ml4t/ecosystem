@@ -10,13 +10,14 @@ from ml4t_ecosystem.config import load_config
 
 
 class FakePyPI:
-    def __init__(self, *, stable: bool = True, compatible: bool = True):
+    def __init__(self, *, stable: bool = True, compatible: bool = True, version: str | None = None):
         self.stable = stable
         self.compatible = compatible
+        self.version = version
 
     def package(self, distribution: str) -> dict[str, Any]:
         return {
-            "version": "0.1.0" if self.stable else "0.1.0b1",
+            "version": self.version or ("0.1.0" if self.stable else "0.1.0b1"),
             "classifiers": [
                 "Development Status :: 5 - Production/Stable"
                 if self.stable
@@ -40,11 +41,16 @@ class FakeGitHub:
         if not self.complete and path == "SECURITY.md":
             return None
         if path == ".github/workflows/ecosystem.yml":
+            exception = {
+                "data": "python-315-polars",
+                "engineer": "python-315-polars",
+                "diagnostic": "python-315-scipy",
+            }.get(repository)
             return (
                 "concurrency:\n"
                 "  cancel-in-progress: true\n"
                 "uses: ml4t/ecosystem/.github/workflows/qualify-library.yml@"
-                f"{'a' * 40}\n"
+                f"{'a' * 40}\n" + (f"prerelease-exception: {exception}\n" if exception else "")
             )
         if path == ".github/workflows/release.yml":
             return f"uses: ml4t/ecosystem/.github/workflows/qualify-library.yml@{'a' * 40}\n"
@@ -103,7 +109,7 @@ def test_audit_library_fails_beta_upper_bound_and_missing_repository_files() -> 
     ecosystem = config()
     report = audit_library(
         ecosystem,
-        ecosystem.library("data"),
+        ecosystem.library("backtest"),
         FakeGitHub(complete=False),  # type: ignore[arg-type]
         FakePyPI(stable=False, compatible=False),  # type: ignore[arg-type]
     )
@@ -114,6 +120,57 @@ def test_audit_library_fails_beta_upper_bound_and_missing_repository_files() -> 
     assert "pypi.prerelease-install" in failed
     assert "repository.file.SECURITY.md" in failed
     assert "github.shared-labels" in failed
+
+
+def test_audit_accepts_active_version_scoped_prerelease_exception() -> None:
+    ecosystem = config()
+    report = audit_library(
+        ecosystem,
+        ecosystem.library("data"),
+        FakeGitHub(),  # type: ignore[arg-type]
+        FakePyPI(compatible=False, version="0.1.2"),  # type: ignore[arg-type]
+        observed_at=datetime(2026, 8, 11, tzinfo=UTC),
+    )
+
+    check = next(check for check in report.checks if check.code == "pypi.prerelease-install")
+    assert check.status == "pass"
+    assert "python-315-polars" in check.message
+
+
+def test_audit_rejects_expired_prerelease_exception() -> None:
+    ecosystem = config()
+    report = audit_library(
+        ecosystem,
+        ecosystem.library("data"),
+        FakeGitHub(),  # type: ignore[arg-type]
+        FakePyPI(compatible=False, version="0.1.2"),  # type: ignore[arg-type]
+        observed_at=datetime(2026, 10, 1, tzinfo=UTC),
+    )
+
+    check = next(check for check in report.checks if check.code == "pypi.prerelease-install")
+    assert check.status == "fail"
+    assert "expired" in check.message
+
+
+def test_audit_rejects_missing_workflow_exception_declaration() -> None:
+    class MissingExceptionGitHub(FakeGitHub):
+        def content(self, owner: str, repository: str, path: str) -> str | None:
+            content = super().content(owner, repository, path)
+            if path == ".github/workflows/ecosystem.yml" and content is not None:
+                return content.replace("prerelease-exception: python-315-polars\n", "")
+            return content
+
+    ecosystem = config()
+    report = audit_library(
+        ecosystem,
+        ecosystem.library("data"),
+        MissingExceptionGitHub(),
+        FakePyPI(compatible=False, version="0.1.2"),
+        observed_at=datetime(2026, 8, 11, tzinfo=UTC),
+    )
+
+    check = next(check for check in report.checks if check.code == "workflow.prerelease-exception")
+    assert check.status == "fail"
 
 
 def test_audit_preserves_source_failures_as_unknown() -> None:
@@ -174,6 +231,7 @@ def test_audit_rejects_mutable_workflow_references_and_uncancelled_runs() -> Non
     assert failed == {
         "release.central-qualification",
         "workflow.central-qualification",
+        "workflow.prerelease-exception",
         "workflow.superseded-cancellation",
     }
 

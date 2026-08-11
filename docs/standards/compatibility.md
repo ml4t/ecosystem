@@ -23,5 +23,10 @@ For releases before 2026-10-01, the stable matrix is Python 3.12 through 3.14 an
 prerelease target is Python 3.15. A package metadata upper bound that prevents installation on the
 prerelease target fails this standard.
 
+A library may temporarily retain an upper bound only through a machine-readable exception in
+`config/libraries.toml`. The exception replaces the prerelease jobs with an explicit validation job;
+it does not remove the stable operating-system matrix. The validation fails when the exception is
+missing, applied to another repository, outside its version scope, or expired.
+
 Hardware-specific capabilities such as CUDA require a separate matrix. Passing the general matrix
 does not establish hardware support.

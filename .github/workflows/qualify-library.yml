@@ -12,6 +12,11 @@ on:
         required: false
         type: string
         default: '["tests"]'
+      prerelease-exception:
+        description: Approved ecosystem exception id that replaces prerelease qualification
+        required: false
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -42,6 +47,7 @@ jobs:
 
   prerelease:
     name: ${{ matrix.os }} / Python 3.15 prerelease
+    if: ${{ inputs.prerelease-exception == '' }}
     strategy:
       fail-fast: false
       matrix:
@@ -68,3 +74,23 @@ jobs:
           --preinstalled-python
         env:
           ML4T_PRERELEASE_TESTS_JSON: ${{ inputs.prerelease-test-paths }}
+
+  prerelease-exception:
+    name: Validate Python 3.15 exception
+    if: ${{ inputs.prerelease-exception != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          repository: ml4t/ecosystem
+          ref: 21bbc32a36ad2702146d3a18305abf89f907099e
+          path: .ecosystem
+      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          version: "0.10.9"
+          enable-cache: true
+      - run: >-
+          uv run --project .ecosystem python .ecosystem/scripts/validate_exception.py
+          --config .ecosystem/config/libraries.toml
+          --exception-id ${{ inputs.prerelease-exception }}
+          --repository ${{ github.repository }}

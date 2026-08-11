@@ -1,3 +1,4 @@
+from datetime import date
 from pathlib import Path
 
 import pytest
@@ -12,6 +13,14 @@ def test_load_repository_config() -> None:
     assert len(config.libraries) == 7
     assert config.library("backtest").distribution == "ml4t-backtest"
     assert config.policy.stable_python == ("3.12", "3.13", "3.14")
+    assert config.library("data").prerelease_exception == "python-315-polars"
+    assert config.library("backtest").prerelease_exception is None
+
+    exception = config.exception("python-315-polars")
+    assert exception.libraries == ("data", "engineer")
+    assert exception.is_active(date(2026, 8, 11))
+    assert exception.covers_version("0.1.2")
+    assert not exception.covers_version("0.1.4")
 
 
 def test_unknown_library_raises() -> None:
@@ -19,6 +28,9 @@ def test_unknown_library_raises() -> None:
 
     with pytest.raises(KeyError, match="Unknown library"):
         config.library("unknown")
+
+    with pytest.raises(KeyError, match="Unknown exception"):
+        config.exception("unknown")
 
 
 @pytest.mark.parametrize(
@@ -66,6 +78,34 @@ def test_duplicate_and_incomplete_inventory_rejected(tmp_path: Path) -> None:
         content.replace('repository = "models"', 'repository = "data"', 1), encoding="utf-8"
     )
     with pytest.raises(ValueError, match="repositories must be unique"):
+        load_config(path)
+
+
+@pytest.mark.parametrize(
+    ("replacement", "message"),
+    [
+        ('id = "python-315-scipy"', "exception ids must be unique"),
+        ('libraries = ["unknown"]', "unknown libraries"),
+        ('prerelease_exception = "unknown"', "unknown prerelease exception"),
+        ('expires_on = "2026-09-30"', "expires_on must be a TOML date"),
+        ('affected_versions = "invalid"', "affected_versions"),
+        ('criterion = "other"', "criterion"),
+    ],
+)
+def test_invalid_exception_config_rejected(tmp_path: Path, replacement: str, message: str) -> None:
+    content = Path("config/libraries.toml").read_text(encoding="utf-8")
+    originals = {
+        'id = "python-315-scipy"': 'id = "python-315-polars"',
+        'libraries = ["unknown"]': 'libraries = ["data", "engineer"]',
+        'prerelease_exception = "unknown"': 'prerelease_exception = "python-315-polars"',
+        'expires_on = "2026-09-30"': "expires_on = 2026-09-30",
+        'affected_versions = "invalid"': 'affected_versions = ">=0.1.2,<0.1.4"',
+        'criterion = "other"': 'criterion = "python-3.15-prerelease"',
+    }
+    path = tmp_path / "invalid-exception.toml"
+    path.write_text(content.replace(originals[replacement], replacement, 1), encoding="utf-8")
+
+    with pytest.raises(ValueError, match=message):
         load_config(path)
 
 

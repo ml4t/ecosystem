@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import tomllib
+from datetime import date
 from pathlib import Path
 from typing import Any
 
-from ml4t_ecosystem.models import EcosystemConfig, Library, Policy
+from packaging.specifiers import InvalidSpecifier, SpecifierSet
+
+from ml4t_ecosystem.models import EcosystemConfig, Library, Policy, QualificationException
 
 EXPECTED_LIBRARY_KEYS = {
     "data",
@@ -31,6 +34,22 @@ def _string_tuple(mapping: dict[str, Any], key: str) -> tuple[str, ...]:
     if not isinstance(value, list) or not value or not all(isinstance(item, str) for item in value):
         raise ValueError(f"{key} must be a non-empty string list")
     return tuple(value)
+
+
+def _optional_str(mapping: dict[str, Any], key: str) -> str | None:
+    value = mapping.get(key)
+    if value is None:
+        return None
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{key} must be a non-empty string when provided")
+    return value
+
+
+def _required_date(mapping: dict[str, Any], key: str) -> date:
+    value = mapping.get(key)
+    if not isinstance(value, date):
+        raise ValueError(f"{key} must be a TOML date")
+    return value
 
 
 def load_config(path: Path) -> EcosystemConfig:
@@ -76,6 +95,7 @@ def load_config(path: Path) -> EcosystemConfig:
                 docs_url=_required_str(raw_library, "docs_url"),
                 local_checkout=_required_str(raw_library, "local_checkout"),
                 development_workspace=_required_str(raw_library, "development_workspace"),
+                prerelease_exception=_optional_str(raw_library, "prerelease_exception"),
             )
         )
 
@@ -90,9 +110,74 @@ def load_config(path: Path) -> EcosystemConfig:
     if len(repositories) != len(set(repositories)):
         raise ValueError("library repositories must be unique")
 
+    raw_exceptions = raw.get("exceptions", [])
+    if not isinstance(raw_exceptions, list):
+        raise ValueError("exceptions must be an array of tables")
+    exceptions: list[QualificationException] = []
+    for raw_exception in raw_exceptions:
+        if not isinstance(raw_exception, dict):
+            raise ValueError("each exception must be a table")
+        affected_versions = _required_str(raw_exception, "affected_versions")
+        try:
+            SpecifierSet(affected_versions)
+        except InvalidSpecifier as error:
+            raise ValueError(f"affected_versions must be a valid specifier: {error}") from error
+        exceptions.append(
+            QualificationException(
+                id=_required_str(raw_exception, "id"),
+                criterion=_required_str(raw_exception, "criterion"),
+                libraries=_string_tuple(raw_exception, "libraries"),
+                affected_versions=affected_versions,
+                rationale=_required_str(raw_exception, "rationale"),
+                evidence=_string_tuple(raw_exception, "evidence"),
+                user_impact=_required_str(raw_exception, "user_impact"),
+                mitigation=_required_str(raw_exception, "mitigation"),
+                approver=_required_str(raw_exception, "approver"),
+                expires_on=_required_date(raw_exception, "expires_on"),
+                issue=_required_str(raw_exception, "issue"),
+            )
+        )
+
+    exception_ids = [exception.id for exception in exceptions]
+    if len(exception_ids) != len(set(exception_ids)):
+        raise ValueError("exception ids must be unique")
+    known_keys = set(keys)
+    expected_criterion = f"python-{policy.prerelease_python}-prerelease"
+    for exception in exceptions:
+        if exception.criterion != expected_criterion:
+            raise ValueError(f"exception {exception.id} criterion must be {expected_criterion!r}")
+        unknown = sorted(set(exception.libraries) - known_keys)
+        if unknown:
+            raise ValueError(f"exception {exception.id} has unknown libraries: {unknown}")
+
+    exceptions_by_id = {exception.id: exception for exception in exceptions}
+    for library in libraries:
+        if library.prerelease_exception is None:
+            continue
+        exception = exceptions_by_id.get(library.prerelease_exception)
+        if exception is None:
+            raise ValueError(
+                f"library {library.key} references unknown prerelease exception "
+                f"{library.prerelease_exception}"
+            )
+        if library.key not in exception.libraries:
+            raise ValueError(
+                f"exception {exception.id} does not include configured library {library.key}"
+            )
+
+    referenced = {
+        library.prerelease_exception
+        for library in libraries
+        if library.prerelease_exception is not None
+    }
+    unreferenced = sorted(set(exception_ids) - referenced)
+    if unreferenced:
+        raise ValueError(f"unreferenced exceptions: {unreferenced}")
+
     return EcosystemConfig(
         schema_version=1,
         owner=owner,
         policy=policy,
         libraries=tuple(libraries),
+        exceptions=tuple(exceptions),
     )

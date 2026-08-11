@@ -48,6 +48,7 @@ CENTRAL_QUALIFICATION = re.compile(
     r"(?:\s*#.*)?$",
     re.MULTILINE,
 )
+PRERELEASE_EXCEPTION = re.compile(r"^\s*prerelease-exception:\s*([^\s#]+)", re.MULTILINE)
 
 
 def _result(code: str, passed: bool, message: str, evidence: str | None = None) -> CheckResult:
@@ -78,7 +79,9 @@ def _allows_prerelease(requires_python: str | None, prerelease: str) -> bool:
 def _check_pypi(
     report: LibraryReport,
     info: dict[str, Any],
-    prerelease_python: str,
+    config: EcosystemConfig,
+    library: Library,
+    observed_at: datetime,
 ) -> None:
     version_text = info.get("version")
     report.published_version = version_text if isinstance(version_text, str) else None
@@ -107,16 +110,39 @@ def _check_pypi(
 
     requires_python = info.get("requires_python")
     requires_text = requires_python if isinstance(requires_python, str) else None
+    prerelease_python = config.policy.prerelease_python
     prerelease_allowed = _allows_prerelease(requires_text, prerelease_python)
+    exception_message: str | None = None
+    exception_evidence: str | None = None
+    if not prerelease_allowed and library.prerelease_exception is not None:
+        exception = config.exception(library.prerelease_exception)
+        exception_evidence = exception.issue
+        if not exception.is_active(observed_at.date()):
+            exception_message = (
+                f"Exception {exception.id} expired on {exception.expires_on.isoformat()}"
+            )
+        elif not isinstance(version_text, str) or not exception.covers_version(version_text):
+            exception_message = (
+                f"Exception {exception.id} does not cover published version {version_text!r}"
+            )
+        else:
+            prerelease_allowed = True
+            exception_message = (
+                f"Requires-Python {requires_text!r} is covered by active exception "
+                f"{exception.id} through {exception.expires_on.isoformat()}"
+            )
     report.checks.append(
         _result(
             "pypi.prerelease-install",
             prerelease_allowed,
             (
-                f"Requires-Python {requires_text!r} allows Python {prerelease_python} beta"
+                exception_message
+                if exception_message is not None
+                else f"Requires-Python {requires_text!r} allows Python {prerelease_python} beta"
                 if prerelease_allowed
                 else f"Requires-Python {requires_text!r} blocks Python {prerelease_python} beta"
             ),
+            exception_evidence,
         )
     )
 
@@ -160,6 +186,25 @@ def _check_repository(
             "workflow.central-qualification",
             _uses_pinned_central_qualification(ecosystem_workflow),
             "Repository calls an immutable central qualification workflow revision",
+        )
+    )
+    exception_match = PRERELEASE_EXCEPTION.search(ecosystem_workflow)
+    declared_exception = exception_match.group(1) if exception_match else None
+    expected_exception = library.prerelease_exception
+    report.checks.append(
+        _result(
+            "workflow.prerelease-exception",
+            declared_exception == expected_exception,
+            (
+                f"Workflow declares expected prerelease exception {expected_exception}"
+                if expected_exception is not None and declared_exception == expected_exception
+                else "Workflow correctly requires prerelease qualification"
+                if expected_exception is None and declared_exception is None
+                else (
+                    f"Workflow prerelease exception {declared_exception!r} does not match "
+                    f"configured exception {expected_exception!r}"
+                )
+            ),
         )
     )
 
@@ -262,11 +307,12 @@ def audit_library(
     observed_at: datetime | None = None,
 ) -> LibraryReport:
     """Audit one library, preserving source failures as unknown evidence."""
-    observed = (observed_at or datetime.now(UTC)).isoformat()
+    observation = observed_at or datetime.now(UTC)
+    observed = observation.isoformat()
     report = LibraryReport(library=library, observed_at=observed)
     try:
         info = pypi.package(library.distribution)
-        _check_pypi(report, info, config.policy.prerelease_python)
+        _check_pypi(report, info, config, library, observation)
     except EvidenceError as error:
         report.checks.append(_unknown("pypi.evidence", str(error)))
 
