@@ -41,8 +41,8 @@ def main() -> int:
     if not args.prerelease:
         run(["uv", "run", "--python", args.python, "ruff", "check", "src", "tests"])
         run(["uv", "run", "--python", args.python, "ruff", "format", "--check", "src", "tests"])
-        run(["uv", "run", "--python", args.python, "ty", "check"])
-    run(["uv", "run", "--python", args.python, "pytest", "-q"])
+        run(["uv", "run", "--python", args.python, "ty", "check", "src", "tests"])
+    run(["uv", "run", "--python", args.python, "pytest", "tests", "-q"])
     run(["uv", "build"])
 
     wheels = sorted(Path("dist").glob("*.whl"), key=lambda path: path.stat().st_mtime)
