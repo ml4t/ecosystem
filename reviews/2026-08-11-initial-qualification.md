@@ -28,13 +28,13 @@ qualification, generated status snapshots, and releases cannot yet be completed 
 
 | Library | Pull request | Reviewed commit | Qualification state |
 |---|---:|---|---|
-| data | [#42](https://github.com/ml4t/data/pull/42) | `77b0dec` | New matrix running after selecting NumPy 2.5.2; prior matrix passed all stable jobs and failed all Python 3.15 jobs in Polars |
-| engineer | [#34](https://github.com/ml4t/engineer/pull/34) | `2c8490d` | All stable jobs pass; all Python 3.15 jobs fail in Polars |
-| backtest | [#75](https://github.com/ml4t/backtest/pull/75) | `98c12aa` | New matrix running after selecting NumPy 2.5.2 |
+| data | [#42](https://github.com/ml4t/data/pull/42) | `77b0dec` | 20 checks pass, including every stable job; all three Python 3.15 jobs fail in Polars |
+| engineer | [#34](https://github.com/ml4t/engineer/pull/34) | `2c8490d` | 23 checks pass, including every stable job; all three Python 3.15 jobs fail in Polars |
+| backtest | [#75](https://github.com/ml4t/backtest/pull/75) | `98c12aa` | All 36 checks pass, including two independent Python 3.15 matrices |
 | specs | [#9](https://github.com/ml4t/specs/pull/9) | `54c8480` | All 28 checks pass, including Python 3.15 on all three operating systems |
-| live | [#56](https://github.com/ml4t/live/pull/56) | `fcede6c` | New matrix running after Windows fixes, release-candidate correction, and NumPy 2.5.2 selection |
-| diagnostic | [#39](https://github.com/ml4t/diagnostic/pull/39) | `bcdd8fc` | Completed stable jobs pass; all Python 3.15 jobs fail during SciPy installation |
-| models | [#36](https://github.com/ml4t/models/pull/36) | `3a13150` | New matrix running after defining the hardware-independent core suite and updating numerical runtimes |
+| live | [#56](https://github.com/ml4t/live/pull/56) | `7f6e6cc` | Both qualification workflows complete successfully, including every stable and Python 3.15 operating-system job |
+| diagnostic | [#39](https://github.com/ml4t/diagnostic/pull/39) | `bcdd8fc` | 34 checks pass, including every stable job; all three Python 3.15 jobs fail during SciPy installation |
+| models | [#36](https://github.com/ml4t/models/pull/36) | `3a13150` | Every required stable and Python 3.15 job passes; the optional CUDA job is skipped on pull requests |
 
 This table records pull-request branch evidence, not default-branch or published-package status.
 The generated files under `status/` remain authoritative for merged default branches.
@@ -62,6 +62,9 @@ The generated files under `status/` remain authoritative for merged default bran
   runtime errors for features that require them.
 - Isolated one explicit `data` storage benchmark from the default correctness suite so a timing
   threshold does not make ordinary macOS qualification nondeterministic.
+- Required authentication for response monitoring after reproducing GitHub's incorrect anonymous
+  maintainer association. Authenticated monitoring of all current open issues and pull requests
+  reports no overdue classification or response findings.
 
 ## External blockers
 
