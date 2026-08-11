@@ -40,9 +40,14 @@ class FakeGitHub:
         if not self.complete and path == "SECURITY.md":
             return None
         if path == ".github/workflows/ecosystem.yml":
-            return "uses: ml4t/ecosystem/.github/workflows/qualify-library.yml@main\n"
+            return (
+                "concurrency:\n"
+                "  cancel-in-progress: true\n"
+                "uses: ml4t/ecosystem/.github/workflows/qualify-library.yml@"
+                f"{'a' * 40}\n"
+            )
         if path == ".github/workflows/release.yml":
-            return "uses: ml4t/ecosystem/.github/workflows/qualify-library.yml@main\n"
+            return f"uses: ml4t/ecosystem/.github/workflows/qualify-library.yml@{'a' * 40}\n"
         if path == ".github/workflows/docs.yml":
             return "run: uv run mkdocs build --strict\n"
         if path == "mkdocs.yml":
@@ -146,6 +151,29 @@ def test_audit_marks_hidden_security_state_unknown() -> None:
 
     security = next(check for check in report.checks if check.code == "security.private-reporting")
     assert security.status == "unknown"
+
+
+def test_audit_rejects_mutable_workflow_references_and_uncancelled_runs() -> None:
+    class MutableWorkflowGitHub(FakeGitHub):
+        def content(self, owner: str, repository: str, path: str) -> str | None:
+            if path in {".github/workflows/ecosystem.yml", ".github/workflows/release.yml"}:
+                return "uses: ml4t/ecosystem/.github/workflows/qualify-library.yml@main\n"
+            return super().content(owner, repository, path)
+
+    ecosystem = config()
+    report = audit_library(
+        ecosystem,
+        ecosystem.library("data"),
+        MutableWorkflowGitHub(),
+        FakePyPI(),
+    )
+
+    failed = {check.code for check in report.checks if check.status == "fail"}
+    assert failed == {
+        "release.central-qualification",
+        "workflow.central-qualification",
+        "workflow.superseded-cancellation",
+    }
 
 
 @pytest.mark.parametrize("version", ["invalid", "0.1.0b1"])

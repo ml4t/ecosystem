@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from datetime import UTC, datetime
 from typing import Any
 
@@ -40,6 +41,11 @@ REQUIRED_LABELS = {
     "compatibility: none",
     "ecosystem",
 }
+CENTRAL_QUALIFICATION = re.compile(
+    r"^\s*uses:\s*ml4t/ecosystem/\.github/workflows/qualify-library\.yml@[0-9a-f]{40}"
+    r"(?:\s*#.*)?$",
+    re.MULTILINE,
+)
 
 
 def _result(code: str, passed: bool, message: str, evidence: str | None = None) -> CheckResult:
@@ -50,6 +56,10 @@ def _result(code: str, passed: bool, message: str, evidence: str | None = None) 
 
 def _unknown(code: str, message: str, evidence: str | None = None) -> CheckResult:
     return CheckResult(code=code, status="unknown", message=message, evidence=evidence)
+
+
+def _uses_pinned_central_qualification(workflow: str) -> bool:
+    return CENTRAL_QUALIFICATION.search(workflow) is not None
 
 
 def _allows_prerelease(requires_python: str | None, prerelease: str) -> bool:
@@ -146,8 +156,18 @@ def _check_repository(
     report.checks.append(
         _result(
             "workflow.central-qualification",
-            "ml4t/ecosystem/.github/workflows/qualify-library.yml@main" in ecosystem_workflow,
-            "Repository calls the central qualification workflow",
+            _uses_pinned_central_qualification(ecosystem_workflow),
+            "Repository calls an immutable central qualification workflow revision",
+        )
+    )
+    cancels_superseded = (
+        "concurrency:" in ecosystem_workflow and "cancel-in-progress: true" in ecosystem_workflow
+    )
+    report.checks.append(
+        _result(
+            "workflow.superseded-cancellation",
+            cancels_superseded,
+            "Repository cancels superseded qualification runs",
         )
     )
 
@@ -173,14 +193,12 @@ def _check_repository(
     report.checks.append(
         _result("docs.strict-build", strict_docs, "CI or release runs MkDocs in strict mode")
     )
-    release_qualified = "ml4t/ecosystem/.github/workflows/qualify-library.yml@main" in (
-        release_workflow or ""
-    )
+    release_qualified = _uses_pinned_central_qualification(release_workflow or "")
     report.checks.append(
         _result(
             "release.central-qualification",
             release_qualified,
-            "Release workflow depends on central qualification",
+            "Release workflow depends on an immutable central qualification revision",
         )
     )
 
