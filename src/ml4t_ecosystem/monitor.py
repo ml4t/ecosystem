@@ -65,8 +65,18 @@ def _classified(labels: set[str]) -> bool:
     )
 
 
-def _maintainer_response(entries: list[dict[str, Any]]) -> bool:
-    return any(entry.get("author_association") in MAINTAINER_ASSOCIATIONS for entry in entries)
+def _maintainer_response(entries: list[dict[str, Any]], maintainer_logins: tuple[str, ...]) -> bool:
+    configured = {login.casefold() for login in maintainer_logins}
+    for entry in entries:
+        if entry.get("author_association") in MAINTAINER_ASSOCIATIONS:
+            return True
+        user = entry.get("user")
+        if not isinstance(user, dict):
+            continue
+        login = user.get("login")
+        if isinstance(login, str) and login.casefold() in configured:
+            return True
+    return False
 
 
 def _pending_review_has_date(item: dict[str, Any], comments: list[dict[str, Any]]) -> bool:
@@ -146,7 +156,7 @@ def monitor_library(
                 MonitorFinding(library.key, number, kind, "monitor.evidence", str(error), url)
             )
             continue
-        responded = _maintainer_response(responses)
+        responded = _maintainer_response(responses, config.policy.maintainer_logins)
         pending = "status: pending-review" in labels and _pending_review_has_date(item, comments)
         if not responded and not pending:
             findings.append(

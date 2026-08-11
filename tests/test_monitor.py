@@ -82,6 +82,30 @@ def test_maintainer_response_satisfies_response_target() -> None:
     assert findings == []
 
 
+def test_configured_maintainer_response_survives_incorrect_api_association() -> None:
+    config = load_config(Path("config/libraries.toml"))
+    labels = [
+        "type: bug",
+        "priority: normal",
+        "status: accepted",
+        "compatibility: affected",
+    ]
+    comments = [
+        {
+            "author_association": "NONE",
+            "user": {"login": "stefan-jansen"},
+        }
+    ]
+    findings = monitor_library(
+        config,
+        config.library("data"),
+        FakeGitHub([item(labels=labels)], comments),  # type: ignore[arg-type]
+        now=datetime(2026, 8, 11, 12, tzinfo=UTC),
+    )
+
+    assert findings == []
+
+
 def test_dated_pending_review_satisfies_response_target() -> None:
     config = load_config(Path("config/libraries.toml"))
     labels = [

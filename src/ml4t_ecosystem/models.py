@@ -60,6 +60,7 @@ class Policy:
     operating_systems: tuple[str, ...]
     classification_target_minutes: int
     response_target_business_days: int
+    maintainer_logins: tuple[str, ...]
 
 
 @dataclass(frozen=True)

@@ -77,6 +77,7 @@ def load_config(path: Path) -> EcosystemConfig:
         operating_systems=_string_tuple(raw_policy, "operating_systems"),
         classification_target_minutes=classification,
         response_target_business_days=response,
+        maintainer_logins=_string_tuple(raw_policy, "maintainer_logins"),
     )
 
     raw_libraries = raw.get("libraries")

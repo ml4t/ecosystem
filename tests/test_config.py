@@ -13,6 +13,7 @@ def test_load_repository_config() -> None:
     assert len(config.libraries) == 7
     assert config.library("backtest").distribution == "ml4t-backtest"
     assert config.policy.stable_python == ("3.12", "3.13", "3.14")
+    assert config.policy.maintainer_logins == ("stefan-jansen",)
     assert config.library("data").prerelease_exception == "python-315-polars"
     assert config.library("backtest").prerelease_exception is None
 
@@ -41,6 +42,7 @@ def test_unknown_library_raises() -> None:
         ("classification_target_minutes = 0", "classification_target_minutes"),
         ("response_target_business_days = 0", "response_target_business_days"),
         ('stable_python = "3.12"', "stable_python"),
+        ("maintainer_logins = []", "maintainer_logins"),
     ],
 )
 def test_invalid_config_rejected(tmp_path: Path, replacement: str, message: str) -> None:
@@ -51,6 +53,7 @@ def test_invalid_config_rejected(tmp_path: Path, replacement: str, message: str)
         "classification_target_minutes = 0": "classification_target_minutes = 60",
         "response_target_business_days = 0": "response_target_business_days = 2",
         'stable_python = "3.12"': 'stable_python = ["3.12", "3.13", "3.14"]',
+        "maintainer_logins = []": 'maintainer_logins = ["stefan-jansen"]',
     }
     path = tmp_path / "invalid.toml"
     path.write_text(content.replace(originals[replacement], replacement), encoding="utf-8")
