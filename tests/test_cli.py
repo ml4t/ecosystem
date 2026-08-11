@@ -78,12 +78,20 @@ def test_monitor_command(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Non
             pass
 
     finding = MonitorFinding("data", 1, "issue", "overdue", "message", "url")
+    monkeypatch.setenv("GITHUB_TOKEN", "test-token")
     monkeypatch.setattr("ml4t_ecosystem.cli.GitHubClient", Client)
     monkeypatch.setattr("ml4t_ecosystem.cli.monitor_all", lambda config, github: [finding])
     output = tmp_path / "monitor.json"
 
     assert main(["monitor", "--output", str(output)]) == 1
     assert json.loads(output.read_text(encoding="utf-8"))["findings"][0]["library"] == "data"
+
+
+def test_monitor_requires_authentication(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("GITHUB_TOKEN", raising=False)
+
+    with pytest.raises(SystemExit, match="GITHUB_TOKEN is required"):
+        main(["monitor"])
 
 
 @pytest.mark.parametrize(

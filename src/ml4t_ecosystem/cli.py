@@ -67,7 +67,10 @@ def _collect(args: argparse.Namespace) -> int:
 
 def _monitor(args: argparse.Namespace) -> int:
     config = load_config(args.config)
-    github = GitHubClient(token=os.getenv("GITHUB_TOKEN"))
+    token = os.getenv("GITHUB_TOKEN")
+    if not token:
+        raise SystemExit("GITHUB_TOKEN is required for accurate maintainer-response monitoring")
+    github = GitHubClient(token=token)
     try:
         findings = monitor_all(config, github)
     finally:
