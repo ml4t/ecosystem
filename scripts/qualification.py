@@ -29,8 +29,10 @@ def dependency_prerelease_args(enabled: bool) -> list[str]:
     return ["--prerelease", "allow"] if enabled else []
 
 
-def python_install_command(version: str) -> list[str]:
-    """Build a managed-Python install command for stable or prerelease versions."""
+def python_install_command(version: str, *, preinstalled: bool = False) -> list[str] | None:
+    """Build a managed-Python install command unless CI supplied the interpreter."""
+    if preinstalled:
+        return None
     return ["uv", "python", "install", version]
 
 
@@ -63,6 +65,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--python", required=True)
     parser.add_argument("--import-package", required=True)
     parser.add_argument("--prerelease", action="store_true")
+    parser.add_argument("--preinstalled-python", action="store_true")
     return parser.parse_args()
 
 
@@ -70,7 +73,9 @@ def main() -> int:
     """Qualify the library in the current working directory."""
     args = parse_args()
     prerelease_args = dependency_prerelease_args(args.prerelease)
-    run(python_install_command(args.python))
+    install = python_install_command(args.python, preinstalled=args.preinstalled_python)
+    if install is not None:
+        run(install)
     run(sync_command(args.python, prerelease=args.prerelease))
     if not args.prerelease:
         run(uv_run_command(args.python, "ruff", "check", "src", "tests"))
