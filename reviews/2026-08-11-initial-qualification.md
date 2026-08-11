@@ -84,10 +84,17 @@ regenerated after the pull requests merge.
   of `origin/main`, with no working-tree or untracked changes. The checkout was repaired to clean,
   synchronized `main`.
 - Four diagnostic worktrees remain because they belong to open pull requests.
-- Branches with unique, unresolved commits remain. This includes
-  `data/work/local-main-unpublished-20260811`, which preserves 133 unpublished commits. Removing
-  unresolved branches without reviewing their content would discard work rather than clean up dead
-  references.
+- Branches with unique, unresolved commits remain. Removing them without reviewing their content
+  would discard work rather than clean up dead references:
+  - data: `chore/ci-python-312-314`, `feat/docs-plate-header`, `pr-20`,
+    `slice/provider-close-noise`, and `work/local-main-unpublished-20260811`. The last branch
+    preserves 133 unpublished commits.
+  - engineer: `feat/docs-plate-header`.
+  - backtest: `diag/engine-memory-profiling`, `feat/docs-plate-header`,
+    `feature/validation-trade-audit`, `feature/validation-trade-audit-main`, and `fix/ch16-parity`.
+  - live: `chore/pr-release-policy` and `feat/docs-plate-header`.
+  - diagnostic: `feat/daily-ic-uncertainty`, `feat/docs-plate-header`, and
+    `fix/vendor-docs-theme-ci`.
 
 ## Release decision
 
