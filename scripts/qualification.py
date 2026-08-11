@@ -24,6 +24,21 @@ def venv_python(directory: Path) -> Path:
     return directory / "bin/python"
 
 
+def dependency_prerelease_args(enabled: bool) -> list[str]:
+    """Return prerelease selection flags for dependency resolution commands."""
+    return ["--prerelease", "allow"] if enabled else []
+
+
+def python_install_command(version: str) -> list[str]:
+    """Build a managed-Python install command for stable or prerelease versions."""
+    return ["uv", "python", "install", version]
+
+
+def venv_command(version: str, directory: Path) -> list[str]:
+    """Build a virtual-environment command without dependency-only flags."""
+    return ["uv", "venv", "--python", version, str(directory)]
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--python", required=True)
@@ -35,8 +50,8 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     """Qualify the library in the current working directory."""
     args = parse_args()
-    prerelease_args = ["--prerelease", "allow"] if args.prerelease else []
-    run(["uv", "python", "install", args.python, *prerelease_args])
+    prerelease_args = dependency_prerelease_args(args.prerelease)
+    run(python_install_command(args.python))
     run(["uv", "sync", "--dev", "--python", args.python, *prerelease_args])
     if not args.prerelease:
         run(["uv", "run", "--python", args.python, "ruff", "check", "src", "tests"])
@@ -50,7 +65,7 @@ def main() -> int:
         raise RuntimeError("uv build did not produce a wheel")
     with tempfile.TemporaryDirectory(prefix="ml4t-qualification-") as temporary:
         environment = Path(temporary)
-        run(["uv", "venv", "--python", args.python, str(environment), *prerelease_args])
+        run(venv_command(args.python, environment))
         interpreter = venv_python(environment)
         run(
             [
