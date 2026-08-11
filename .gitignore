@@ -1,0 +1,54 @@
+# Ignore everything by default. This working tree contains independent repositories.
+/*
+
+# Files owned by ml4t/ecosystem.
+!/.gitignore
+!/.python-version
+!/.pre-commit-config.yaml
+!/AGENTS.md
+!/CLAUDE.md
+!/CONTRIBUTING.md
+!/LICENSE
+!/README.md
+!/SECURITY.md
+!/mkdocs.yml
+!/pyproject.toml
+!/uv.lock
+
+# Directories owned by ml4t/ecosystem.
+!/.github/
+!/.github/**
+!/config/
+!/config/**
+!/decisions/
+!/decisions/**
+!/docs/
+!/docs/**
+!/reviews/
+!/reviews/**
+!/scripts/
+!/scripts/**
+!/src/
+!/src/**
+!/standards/
+!/standards/**
+!/status/
+!/status/**
+!/tests/
+!/tests/**
+
+# Generated files inside tracked directories.
+**/__pycache__/
+**/*.py[cod]
+**/.pytest_cache/
+**/.ruff_cache/
+**/.ty_cache/
+/build/
+/dist/
+/site/
+/status/current.json
+/status/current.md
+
+# Pre-existing local review notes. Migrate deliberately before tracking.
+/docs/2026-03-26-docs-prompts-coordination-note.md
+/docs/2026-03-26-docs-suite-audit.md
