@@ -1,0 +1,73 @@
+schema_version = 1
+owner = "ml4t"
+
+[policy]
+minimum_python = "3.12"
+stable_python = ["3.12", "3.13", "3.14"]
+prerelease_python = "3.15"
+operating_systems = ["ubuntu-latest", "macos-latest", "windows-latest"]
+classification_target_minutes = 60
+response_target_business_days = 2
+
+[[libraries]]
+key = "data"
+repository = "data"
+distribution = "ml4t-data"
+import_package = "ml4t.data"
+docs_url = "https://www.ml4trading.io/docs/data/"
+local_checkout = "ml4t-data"
+development_workspace = "ml4t-data-dev"
+
+[[libraries]]
+key = "engineer"
+repository = "engineer"
+distribution = "ml4t-engineer"
+import_package = "ml4t.engineer"
+docs_url = "https://www.ml4trading.io/docs/engineer/"
+local_checkout = "ml4t-engineer"
+development_workspace = "ml4t-engineer-dev"
+
+[[libraries]]
+key = "backtest"
+repository = "backtest"
+distribution = "ml4t-backtest"
+import_package = "ml4t.backtest"
+docs_url = "https://www.ml4trading.io/docs/backtest/"
+local_checkout = "ml4t-backtest"
+development_workspace = "ml4t-backtest-dev"
+
+[[libraries]]
+key = "specs"
+repository = "specs"
+distribution = "ml4t-specs"
+import_package = "ml4t.specs"
+docs_url = "https://www.ml4trading.io/docs/specs/"
+local_checkout = "ml4t-specs"
+development_workspace = "ml4t-specs-dev"
+
+[[libraries]]
+key = "live"
+repository = "live"
+distribution = "ml4t-live"
+import_package = "ml4t.live"
+docs_url = "https://www.ml4trading.io/docs/live/"
+local_checkout = "ml4t-live"
+development_workspace = "ml4t-live-dev"
+
+[[libraries]]
+key = "diagnostic"
+repository = "diagnostic"
+distribution = "ml4t-diagnostic"
+import_package = "ml4t.diagnostic"
+docs_url = "https://www.ml4trading.io/docs/diagnostic/"
+local_checkout = "ml4t-diagnostic"
+development_workspace = "ml4t-diagnostic-dev"
+
+[[libraries]]
+key = "models"
+repository = "models"
+distribution = "ml4t-models"
+import_package = "ml4t.models"
+docs_url = "https://www.ml4trading.io/docs/models/"
+local_checkout = "ml4t-models"
+development_workspace = "ml4t-models-dev"

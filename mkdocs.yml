@@ -1,0 +1,37 @@
+site_name: ML4T Ecosystem
+site_description: Shared standards and qualification status for ML4T libraries
+site_url: https://ml4t.github.io/ecosystem/
+repo_url: https://github.com/ml4t/ecosystem
+repo_name: ml4t/ecosystem
+docs_dir: docs
+
+theme:
+  name: material
+  features:
+    - navigation.indexes
+    - navigation.sections
+    - content.code.copy
+
+nav:
+  - Overview: index.md
+  - Libraries: libraries.md
+  - Current status: status.md
+  - Standards:
+      - Overview: standards/index.md
+      - Compatibility: standards/compatibility.md
+      - Release qualification: standards/release-qualification.md
+      - Documentation: standards/documentation.md
+      - Issues and pull requests: standards/issues-and-pull-requests.md
+      - API compatibility: standards/api-compatibility.md
+      - Dependencies and security: standards/dependencies-and-security.md
+  - Decisions: decisions.md
+  - Reviews: reviews.md
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - tables
+  - toc:
+      permalink: true
+
+strict: true

@@ -1,0 +1,81 @@
+schema_version = 1
+
+[[labels]]
+name = "type: bug"
+color = "d73a4a"
+description = "Confirmed or reported incorrect behavior"
+
+[[labels]]
+name = "type: feature"
+color = "1d76db"
+description = "New or expanded user-facing behavior"
+
+[[labels]]
+name = "type: documentation"
+color = "0075ca"
+description = "Documentation content or process"
+
+[[labels]]
+name = "type: maintenance"
+color = "cfd3d7"
+description = "Internal maintenance without user-visible behavior"
+
+[[labels]]
+name = "priority: critical"
+color = "b60205"
+description = "Immediate correctness, security, or release impact"
+
+[[labels]]
+name = "priority: high"
+color = "d93f0b"
+description = "Material user impact requiring prompt remediation"
+
+[[labels]]
+name = "priority: normal"
+color = "fbca04"
+description = "Normal planned work"
+
+[[labels]]
+name = "priority: low"
+color = "0e8a16"
+description = "Limited impact or optional improvement"
+
+[[labels]]
+name = "status: needs-triage"
+color = "ededed"
+description = "Awaiting maintainer classification"
+
+[[labels]]
+name = "status: pending-review"
+color = "d4c5f9"
+description = "Acknowledged and waiting for the stated review point"
+
+[[labels]]
+name = "status: accepted"
+color = "0e8a16"
+description = "Accepted for implementation"
+
+[[labels]]
+name = "status: blocked"
+color = "b60205"
+description = "Cannot progress until the documented dependency resolves"
+
+[[labels]]
+name = "compatibility: breaking"
+color = "b60205"
+description = "Changes or breaks a supported public contract"
+
+[[labels]]
+name = "compatibility: affected"
+color = "e99695"
+description = "Has Python, platform, dependency, or cross-library compatibility impact"
+
+[[labels]]
+name = "compatibility: none"
+color = "c2e0c6"
+description = "No known compatibility impact"
+
+[[labels]]
+name = "ecosystem"
+color = "5319e7"
+description = "Tracked by a shared ML4T ecosystem requirement"

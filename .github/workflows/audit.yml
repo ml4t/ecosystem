@@ -1,0 +1,36 @@
+name: Ecosystem audit
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.10.9"
+          enable-cache: true
+      - run: uv sync --dev --python 3.12
+      - name: Collect qualification evidence
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: uv run ml4t-ecosystem collect --allow-failures
+      - name: Monitor issues and pull requests
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: uv run ml4t-ecosystem monitor --output status/monitor.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ecosystem-status
+          path: |
+            status/current.json
+            status/current.md
+            status/monitor.json
