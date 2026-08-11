@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import subprocess
 import sys
@@ -60,12 +61,37 @@ def uv_run_command(version: str, *command: str) -> list[str]:
     return ["uv", "run", "--no-sync", "--python", version, *command]
 
 
+def test_targets(*, prerelease: bool, encoded: str) -> list[str]:
+    """Return validated test paths for the selected qualification lane."""
+    if not prerelease:
+        return ["tests"]
+    try:
+        values = json.loads(encoded)
+    except json.JSONDecodeError as error:
+        raise ValueError("prerelease test paths must be a JSON array") from error
+    if not isinstance(values, list) or not values:
+        raise ValueError("prerelease test paths must be a non-empty JSON array")
+    targets: list[str] = []
+    for value in values:
+        if not isinstance(value, str) or not value:
+            raise ValueError("each prerelease test path must be a non-empty string")
+        path = Path(value)
+        if path.is_absolute() or ".." in path.parts or not path.exists():
+            raise ValueError(f"invalid prerelease test path: {value}")
+        targets.append(value)
+    return targets
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--python", required=True)
     parser.add_argument("--import-package", required=True)
     parser.add_argument("--prerelease", action="store_true")
     parser.add_argument("--preinstalled-python", action="store_true")
+    parser.add_argument(
+        "--prerelease-tests-json",
+        default=os.environ.get("ML4T_PRERELEASE_TESTS_JSON", '["tests"]'),
+    )
     return parser.parse_args()
 
 
@@ -81,7 +107,8 @@ def main() -> int:
         run(uv_run_command(args.python, "ruff", "check", "src", "tests"))
         run(uv_run_command(args.python, "ruff", "format", "--check", "src", "tests"))
         run(uv_run_command(args.python, "ty", "check", "src", "tests"))
-    run(uv_run_command(args.python, "pytest", "tests", "-q"))
+    targets = test_targets(prerelease=args.prerelease, encoded=args.prerelease_tests_json)
+    run(uv_run_command(args.python, "pytest", *targets, "-q"))
     run(["uv", "build"])
 
     wheels = sorted(Path("dist").glob("*.whl"), key=lambda path: path.stat().st_mtime)
