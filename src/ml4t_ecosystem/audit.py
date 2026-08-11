@@ -85,17 +85,26 @@ def _check_pypi(
         _result(
             "pypi.stable-classifier",
             stable_classifier,
-            "Published metadata identifies the package as Production/Stable",
+            (
+                "Published metadata identifies the package as Production/Stable"
+                if stable_classifier
+                else "Published metadata does not identify the package as Production/Stable"
+            ),
         )
     )
 
     requires_python = info.get("requires_python")
     requires_text = requires_python if isinstance(requires_python, str) else None
+    prerelease_allowed = _allows_prerelease(requires_text, prerelease_python)
     report.checks.append(
         _result(
             "pypi.prerelease-install",
-            _allows_prerelease(requires_text, prerelease_python),
-            f"Requires-Python {requires_text!r} allows Python {prerelease_python} beta",
+            prerelease_allowed,
+            (
+                f"Requires-Python {requires_text!r} allows Python {prerelease_python} beta"
+                if prerelease_allowed
+                else f"Requires-Python {requires_text!r} blocks Python {prerelease_python} beta"
+            ),
         )
     )
 
@@ -125,7 +134,11 @@ def _check_repository(
             _result(
                 f"repository.file.{path}",
                 contents[path] is not None,
-                f"Required file {path} exists",
+                (
+                    f"Required file {path} exists"
+                    if contents[path] is not None
+                    else f"Required file {path} is missing"
+                ),
             )
         )
 
@@ -139,11 +152,16 @@ def _check_repository(
     )
 
     mkdocs = contents["mkdocs.yml"] or ""
+    canonical_url = library.docs_url.rstrip("/") in mkdocs
     report.checks.append(
         _result(
             "docs.canonical-url",
-            library.docs_url.rstrip("/") in mkdocs,
-            f"MkDocs declares canonical route {library.docs_url}",
+            canonical_url,
+            (
+                f"MkDocs declares canonical route {library.docs_url}"
+                if canonical_url
+                else f"MkDocs does not declare canonical route {library.docs_url}"
+            ),
         )
     )
 
@@ -191,7 +209,11 @@ def _check_repository(
             _result(
                 "security.private-reporting",
                 vulnerability_reporting,
-                "Private vulnerability reporting is enabled",
+                (
+                    "Private vulnerability reporting is enabled"
+                    if vulnerability_reporting
+                    else "Private vulnerability reporting is disabled"
+                ),
             )
         )
 
