@@ -39,6 +39,20 @@ def venv_command(version: str, directory: Path) -> list[str]:
     return ["uv", "venv", "--python", version, str(directory)]
 
 
+def sync_command(version: str, *, prerelease: bool) -> list[str]:
+    """Build the dependency installation command for one qualification lane."""
+    command = ["uv", "sync", "--python", version]
+    if prerelease:
+        return [
+            *command,
+            "--no-dev",
+            "--group",
+            "test",
+            *dependency_prerelease_args(True),
+        ]
+    return [*command, "--dev"]
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--python", required=True)
@@ -52,7 +66,7 @@ def main() -> int:
     args = parse_args()
     prerelease_args = dependency_prerelease_args(args.prerelease)
     run(python_install_command(args.python))
-    run(["uv", "sync", "--dev", "--python", args.python, *prerelease_args])
+    run(sync_command(args.python, prerelease=args.prerelease))
     if not args.prerelease:
         run(["uv", "run", "--python", args.python, "ruff", "check", "src", "tests"])
         run(["uv", "run", "--python", args.python, "ruff", "format", "--check", "src", "tests"])
