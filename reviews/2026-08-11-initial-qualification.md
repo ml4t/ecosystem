@@ -4,125 +4,107 @@ Date: 2026-08-11
 
 Scope: `data`, `engineer`, `backtest`, `specs`, `live`, `diagnostic`, and `models`.
 
-Policy: Python 3.12 through 3.14 must pass installation, import, test, type-check, and
-package-build checks on Linux, macOS, and Windows. Python 3.15 prerelease installation and the
-non-hardware-dependent suite are also blocking on all three operating systems.
+Policy: Python 3.12 through 3.14 must pass installation, import, tests, type checking, and
+package builds on Linux, macOS, and Windows. Python 3.15 prerelease installation and the
+non-hardware-dependent suite are blocking on all three operating systems unless a reviewed,
+version-bounded, and expiring exception applies.
 
 ## Result
 
-The stable-release qualification is not complete. Repository-owned compatibility and quality
-failures found during the review have been fixed on the integration branches. The remaining known
-Python 3.15 failures originate in required third-party dependencies:
+The repository-owned compatibility work is complete on seven integration branches. Three
+libraries require temporary Python 3.15 exclusions because required upstream dependencies do not
+yet support CPython 3.15. The other four libraries retain Python 3.15 prerelease qualification.
 
-- Polars fails common expression and datetime operations on CPython 3.15.0rc1. This blocks the
-  required suites in `data` and `engineer`.
-- SciPy does not publish CPython 3.15 wheels. Building SciPy from source in the qualification jobs
-  fails because the runners do not provide the required OpenBLAS development environment. This
-  blocks `diagnostic` before its tests start.
+The integration pull requests remain open. The execution environment rejects `gh pr merge` because
+the command requires an approval mechanism that is disabled for this session. Earlier connector
+merge attempts also returned HTTP 403. No required check will be bypassed.
 
-The integration pull requests have not been merged. An attempted merge of the fully passing
-`specs` pull request returned `403 Resource not accessible by integration`, so default-branch
-qualification, generated status snapshots, and releases cannot yet be completed by this session.
+## Compatibility decisions
+
+| Library | Source `Requires-Python` | Python 3.15 treatment |
+|---|---|---|
+| data | `>=3.12,<3.15` | `python-315-polars` exception |
+| engineer | `>=3.12,<3.15` | `python-315-polars` exception |
+| backtest | `>=3.12` | Blocking prerelease matrix |
+| specs | `>=3.12` | Blocking prerelease matrix |
+| live | `>=3.12` | Blocking prerelease matrix |
+| diagnostic | `>=3.12,<3.15` | `python-315-scipy` exception |
+| models | `>=3.12` | Blocking non-hardware-dependent prerelease matrix |
+
+The exceptions are declared in `config/libraries.toml`, validated by the shared workflow, limited
+to named libraries and package-version ranges, approved by Stefan Jansen, and expire on
+2026-09-30. The exceptions do not skip or weaken any Python 3.12 through 3.14 operating-system job.
+
+Polars 1.43.2 fails required expression and datetime behavior on CPython 3.15.0rc1. The accepted
+upstream defect is [pola-rs/polars#28347](https://github.com/pola-rs/polars/issues/28347), with an
+upstream fix under review in
+[pola-rs/polars#28750](https://github.com/pola-rs/polars/pull/28750).
+
+SciPy 1.18.0 has no CPython 3.15 wheels for the required operating systems. Qualification attempts
+therefore fail during dependency installation before `diagnostic` tests can start. Both exceptions
+are tracked in [ecosystem issue #2](https://github.com/ml4t/ecosystem/issues/2).
 
 ## Pull-request evidence
 
-| Library | Pull request | Reviewed commit | Qualification state |
+| Library | Pull request | Reviewed commit | Latest hosted state |
 |---|---:|---|---|
-| data | [#42](https://github.com/ml4t/data/pull/42) | `77b0dec` | 20 checks pass, including every stable job; all three Python 3.15 jobs fail in Polars |
-| engineer | [#34](https://github.com/ml4t/engineer/pull/34) | `2c8490d` | 23 checks pass, including every stable job; all three Python 3.15 jobs fail in Polars |
-| backtest | [#75](https://github.com/ml4t/backtest/pull/75) | `98c12aa` | All 36 checks pass, including two independent Python 3.15 matrices |
-| specs | [#9](https://github.com/ml4t/specs/pull/9) | `54c8480` | All 28 checks pass, including Python 3.15 on all three operating systems |
-| live | [#56](https://github.com/ml4t/live/pull/56) | `7f6e6cc` | Both qualification workflows complete successfully, including every stable and Python 3.15 operating-system job |
-| diagnostic | [#39](https://github.com/ml4t/diagnostic/pull/39) | `bcdd8fc` | 34 checks pass, including every stable job; all three Python 3.15 jobs fail during SciPy installation |
-| models | [#36](https://github.com/ml4t/models/pull/36) | `3a13150` | Every required stable and Python 3.15 job passes; the optional CUDA job is skipped on pull requests |
+| data | [#42](https://github.com/ml4t/data/pull/42) | `ba537bf` | Complete, no failures |
+| engineer | [#34](https://github.com/ml4t/engineer/pull/34) | `7a6969c` | Running, no failures observed |
+| backtest | [#75](https://github.com/ml4t/backtest/pull/75) | `2ddcd29` | Complete, no failures |
+| specs | [#9](https://github.com/ml4t/specs/pull/9) | `c3bff2c` | Running, no failures observed |
+| live | [#56](https://github.com/ml4t/live/pull/56) | `c6674a5` | Complete, no failures |
+| diagnostic | [#39](https://github.com/ml4t/diagnostic/pull/39) | `beae2ab` | Running, no failures observed |
+| models | [#36](https://github.com/ml4t/models/pull/36) | `2bc84bb` | Running, no failures observed |
 
 This table records pull-request branch evidence, not default-branch or published-package status.
-The generated files under `status/` remain authoritative for merged default branches.
+Generated files under `status/` remain authoritative for merged default branches and must be
+regenerated after the pull requests merge.
 
-## Repository-owned remediation completed
+## Local verification
 
-- Added standard issue forms, pull-request templates, security reporting, shared labels, central
-  qualification callers, and release qualification dependencies across the seven repositories.
-- Added or aligned strict MkDocs validation and documentation deployment contracts.
-- Corrected Python metadata so prerelease qualification can install the candidate packages.
-- Isolated optional scientific and hardware-dependent dependencies from core qualification where
-  they are not part of the package's core functionality.
-- Kept Polars in the `data` and `engineer` core suites and SciPy in the `diagnostic` core suite
-  because removing them would avoid testing required behavior.
-- Defined a non-hardware-dependent `models` Python 3.15 suite instead of requiring a prerelease
-  PyTorch build that is not part of the core package.
-- Fixed Windows path, encoding, filesystem cleanup, signal, and recovery-test behavior in `live`.
-- Changed the `live` qualification target from the already published 0.1.0 artifact to the 0.1.1
-  release candidate and verified its built artifacts locally.
-- Updated affected lock files to NumPy 2.5.2, the first current release with the required CPython
-  3.15 Windows wheel.
-- Moved optional ML runtimes out of the generic `diagnostic` development environment while retaining
-  their dedicated integration checks.
-- Moved optional scientific dependencies out of the `engineer` core environment and retained clear
-  runtime errors for features that require them.
-- Isolated one explicit `data` storage benchmark from the default correctness suite so a timing
-  threshold does not make ordinary macOS qualification nondeterministic.
-- Required authentication for response monitoring after reproducing GitHub's incorrect anonymous
-  maintainer association. Authenticated monitoring of all current open issues and pull requests
-  reports no overdue classification or response findings.
+- Ecosystem management: Ruff, format, ty, 80 tests, strict MkDocs, package build, and all
+  pre-commit hooks pass. A new GitHub Actions audit passed after the monitor was changed to recognize
+  explicitly configured maintainer accounts when GitHub reports an incorrect author association.
+- Data: 3,609 tests pass with 280 explicitly deselected; Ruff, format, ty, package build, and
+  pre-commit pass. Built metadata contains `Requires-Python: <3.15,>=3.12`.
+- Engineer: the complete suite ran without an observed failure; release-policy tests, package build,
+  and pre-commit pass. Built metadata contains `Requires-Python: <3.15,>=3.12`.
+- Diagnostic: 5,309 tests pass with 75 skips; Ruff, format, ty, package build, and pre-commit pass.
+  Built metadata contains `Requires-Python: <3.15,>=3.12`.
+- Backtest, specs, live, and models pass their repository pre-commit gates on the reviewed commits.
 
-## External blockers
+## Repository cleanup
 
-### Polars on CPython 3.15
-
-Affected libraries: `data`, `engineer`.
-
-Evidence:
-
-- [pola-rs/polars#28347](https://github.com/pola-rs/polars/issues/28347) tracks the accepted
-  CPython 3.15 failure.
-- [pola-rs/polars#28750](https://github.com/pola-rs/polars/pull/28750) contains the upstream fix but
-  was not merged or released at the evidence cutoff.
-- The failure reproduces with Polars 1.43.1 and 1.43.2 before ML4T code can process the result.
-
-Resolution condition: select an upstream Polars release containing the fix and pass the complete
-Python 3.15 suite on Linux, macOS, and Windows.
-
-### SciPy wheels for CPython 3.15
-
-Affected library: `diagnostic`.
-
-Evidence:
-
-- SciPy 1.18.0 publishes no CPython 3.15 wheels on PyPI at the evidence cutoff.
-- No compatible prerelease wheel is available from the configured scientific Python prerelease
-  indexes.
-- Linux, macOS, and Windows qualification therefore attempt a source build and fail before the
-  package test suite can start.
-
-Resolution condition: install a SciPy release or prerelease with compatible wheels on all three
-operating systems, then pass the complete non-hardware-dependent suite.
-
-### Merge authorization
-
-Affected repositories: all integration pull requests that remain open.
-
-Evidence: the `specs` pull request is clean and fully passing, but the GitHub integration returned
-HTTP 403 when asked to merge the reviewed head commit.
-
-Resolution condition: an authorized maintainer merges the qualified pull requests, or grants the
-integration permission to merge them. Failing required checks must not be overridden.
+- Each canonical release checkout is now a clean `main` synchronized with `origin/main`.
+- Completed temporary worktrees and branches without unique patch content were removed.
+- Merged or superseded remote branches were deleted after their pull-request or patch-equivalence
+  evidence was checked.
+- The backtest checkout had `core.bare=true`, an unborn `HEAD`, and an empty branch reference despite
+  containing a normal working tree. Its index tree exactly matched commit `4c29c8a`, a known ancestor
+  of `origin/main`, with no working-tree or untracked changes. The checkout was repaired to clean,
+  synchronized `main`.
+- Four diagnostic worktrees remain because they belong to open pull requests.
+- Branches with unique, unresolved commits remain. This includes
+  `data/work/local-main-unpublished-20260811`, which preserves 133 unpublished commits. Removing
+  unresolved branches without reviewing their content would discard work rather than clean up dead
+  references.
 
 ## Release decision
 
-Do not publish stable patch releases yet. Release approval requires all of the following:
+Do not publish patch releases from the integration branches. Release approval requires:
 
-1. Every required pull-request matrix has completed successfully, including Python 3.15 on all
-   three operating systems.
-2. Qualified pull requests are merged without overriding required checks.
-3. The same requirements pass on each default branch.
-4. The ecosystem collector regenerates `status/current.json` and `status/current.md` from GitHub and
-   PyPI evidence, and the validated result is retained under `status/snapshots/`.
-5. Libraries with user-visible changes publish the next patch release through their normal trusted
-   publishing workflow.
-6. Installed artifacts, published metadata, documentation routes, and the release qualification
-   evidence are verified after publication.
+1. Every current hosted check completes successfully, with an approved exception recorded where
+   Python 3.15 is temporarily excluded.
+2. An authorized maintainer merges the reviewed heads without overriding checks.
+3. The same qualification requirements pass on each default branch.
+4. The ecosystem collector regenerates `status/current.json` and `status/current.md`, and the
+   validated result is retained under `status/snapshots/`.
+5. Libraries with metadata or user-visible changes publish patch releases through trusted
+   publishing.
+6. Installed artifact metadata, imports, documentation routes, and release workflow evidence are
+   verified after publication.
+7. The Polars and SciPy exceptions are removed as soon as compatible upstream releases qualify, and
+   no later than their expiration unless a new reviewed decision explicitly changes the policy.
 
-The review remains open in [ecosystem issue #1](https://github.com/ml4t/ecosystem/issues/1).
-Third-party Python 3.15 failures are tracked in
-[ecosystem issue #2](https://github.com/ml4t/ecosystem/issues/2).
+The qualification review remains tracked in
+[ecosystem issue #1](https://github.com/ml4t/ecosystem/issues/1).
