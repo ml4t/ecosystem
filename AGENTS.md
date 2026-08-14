@@ -33,6 +33,10 @@ The directory containing this repository also contains independent Git repositor
 Before changing a library, read both this file and the target library or development workspace
 `AGENTS.md`. The more specific instructions apply within that repository.
 
+Each library's release checkout also carries `docs/book-guide/index.md`: the authoritative
+chapter-to-API cross-reference (book notebook -> concept -> library API -> docs page). An agent
+mapping a book chapter to a library's surface should read that file first, not grep the six repos.
+
 ## Sources of Truth
 
 Use these authorities in order:
