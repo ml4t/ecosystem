@@ -123,8 +123,14 @@ uv run mkdocs build --strict
 pre-commit run --all-files
 ```
 
-Install hooks once with `pre-commit install`. Commit at coherent passing checkpoints. Confirm before
-pushing unless the active task already authorizes publication.
+Install hooks once with `pre-commit install`. Commit at coherent passing checkpoints, without waiting
+to be asked.
+
+`ml4t/ecosystem` and the library repos it hosts are **public**, so a push here is a publication to
+outside contributors and downstream users, not a backup. Confirm before pushing unless the active
+task already authorizes publication. This is the narrow exception to the standing "push private repos
+freely" rule in `~/.claude/CLAUDE.md`; it applies because these repos are public, not because pushing
+is risky in general.
 
 ## Safety
 
