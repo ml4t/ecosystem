@@ -44,7 +44,7 @@ class FakeGitHub:
             exception = {
                 "data": "python-315-polars",
                 "engineer": "python-315-polars",
-                "diagnostic": "python-315-scipy",
+                "diagnostic": "python-315-pyarrow",
             }.get(repository)
             return (
                 "concurrency:\n"

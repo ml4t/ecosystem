@@ -87,7 +87,7 @@ def test_duplicate_and_incomplete_inventory_rejected(tmp_path: Path) -> None:
 @pytest.mark.parametrize(
     ("replacement", "message"),
     [
-        ('id = "python-315-scipy"', "exception ids must be unique"),
+        ('id = "python-315-pyarrow"', "exception ids must be unique"),
         ('libraries = ["unknown"]', "unknown libraries"),
         ('prerelease_exception = "unknown"', "unknown prerelease exception"),
         ('expires_on = "2026-09-30"', "expires_on must be a TOML date"),
@@ -98,7 +98,7 @@ def test_duplicate_and_incomplete_inventory_rejected(tmp_path: Path) -> None:
 def test_invalid_exception_config_rejected(tmp_path: Path, replacement: str, message: str) -> None:
     content = Path("config/libraries.toml").read_text(encoding="utf-8")
     originals = {
-        'id = "python-315-scipy"': 'id = "python-315-polars"',
+        'id = "python-315-pyarrow"': 'id = "python-315-polars"',
         'libraries = ["unknown"]': 'libraries = ["data", "engineer"]',
         'prerelease_exception = "unknown"': 'prerelease_exception = "python-315-polars"',
         'expires_on = "2026-09-30"': "expires_on = 2026-09-30",
