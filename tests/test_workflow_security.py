@@ -25,3 +25,4 @@ def test_shared_qualification_requires_prerelease_or_validated_exception() -> No
     assert "if: ${{ inputs.prerelease-exception != '' }}" in workflow
     assert "scripts/validate_exception.py" in workflow
     assert "--repository ${{ github.repository }}" in workflow
+    assert "--package-root candidate" in workflow

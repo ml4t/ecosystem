@@ -82,6 +82,10 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
+          fetch-depth: 0
+          path: candidate
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
           repository: ml4t/ecosystem
           ref: 35162f70e177c1b663f3b0b0679b0230d6291ec5
           path: .ecosystem
@@ -94,3 +98,4 @@ jobs:
           --config .ecosystem/config/libraries.toml
           --exception-id ${{ inputs.prerelease-exception }}
           --repository ${{ github.repository }}
+          --package-root candidate
