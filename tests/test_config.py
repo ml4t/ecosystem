@@ -15,6 +15,7 @@ def test_load_repository_config() -> None:
     assert config.policy.stable_python == ("3.12", "3.13", "3.14")
     assert config.policy.maintainer_logins == ("stefan-jansen",)
     assert config.library("data").prerelease_exception == "python-315-polars"
+    assert config.library("diagnostic").prerelease_exception == "python-315-scipy"
     assert config.library("backtest").prerelease_exception is None
 
     exception = config.exception("python-315-polars")
@@ -22,6 +23,12 @@ def test_load_repository_config() -> None:
     assert exception.is_active(date(2026, 8, 11))
     assert exception.covers_version("0.1.2")
     assert not exception.covers_version("0.1.4")
+
+    diagnostic_exception = config.exception("python-315-scipy")
+    assert diagnostic_exception.libraries == ("diagnostic",)
+    assert diagnostic_exception.covers_version("0.1.2")
+    assert diagnostic_exception.covers_version("0.1.3")
+    assert not diagnostic_exception.covers_version("0.1.4")
 
 
 def test_unknown_library_raises() -> None:

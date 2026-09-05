@@ -30,11 +30,15 @@ issue = "https://github.com/ml4t/ecosystem/issues/2"
 id = "python-315-scipy"
 criterion = "python-3.15-prerelease"
 libraries = ["diagnostic"]
-affected_versions = ">=0.1.0,<0.1.2"
-rationale = "SciPy 1.18.0 does not publish CPython 3.15 wheels for the required operating systems."
-evidence = ["https://github.com/ml4t/ecosystem/issues/2"]
+affected_versions = ">=0.1.2,<0.1.4"
+rationale = "The published dependency set lacks required CPython 3.15 wheels for PyArrow 25.0.1 and pydantic-core 2.46.5."
+evidence = [
+    "https://github.com/ml4t/diagnostic/issues/45",
+    "https://pypi.org/project/pyarrow/25.0.1/#files",
+    "https://pypi.org/project/pydantic-core/2.46.5/#files",
+]
 user_impact = "The distribution cannot be installed on Python 3.15 while the exception is active."
-mitigation = "Use Python 3.12 through 3.14 until compatible SciPy wheels are qualified."
+mitigation = "Use Python 3.12 through 3.14 until the complete dependency set is qualified on Python 3.15."
 approver = "Stefan Jansen"
 expires_on = 2026-09-30
 issue = "https://github.com/ml4t/ecosystem/issues/2"
