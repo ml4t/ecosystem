@@ -15,6 +15,7 @@ def test_load_repository_config() -> None:
     assert config.policy.stable_python == ("3.12", "3.13", "3.14")
     assert config.policy.maintainer_logins == ("stefan-jansen",)
     assert config.library("data").prerelease_exception == "python-315-polars"
+    assert config.library("diagnostic").prerelease_exception == "python-315-scipy"
     assert config.library("backtest").prerelease_exception is None
 
     exception = config.exception("python-315-polars")
@@ -22,6 +23,12 @@ def test_load_repository_config() -> None:
     assert exception.is_active(date(2026, 8, 11))
     assert exception.covers_version("0.1.2")
     assert not exception.covers_version("0.1.4")
+
+    diagnostic_exception = config.exception("python-315-scipy")
+    assert diagnostic_exception.libraries == ("diagnostic",)
+    assert diagnostic_exception.covers_version("0.1.2")
+    assert diagnostic_exception.covers_version("0.1.3")
+    assert not diagnostic_exception.covers_version("0.1.4")
 
 
 def test_unknown_library_raises() -> None:
@@ -87,7 +94,7 @@ def test_duplicate_and_incomplete_inventory_rejected(tmp_path: Path) -> None:
 @pytest.mark.parametrize(
     ("replacement", "message"),
     [
-        ('id = "python-315-pyarrow"', "exception ids must be unique"),
+        ('id = "python-315-scipy"', "exception ids must be unique"),
         ('libraries = ["unknown"]', "unknown libraries"),
         ('prerelease_exception = "unknown"', "unknown prerelease exception"),
         ('expires_on = "2026-09-30"', "expires_on must be a TOML date"),
@@ -98,7 +105,7 @@ def test_duplicate_and_incomplete_inventory_rejected(tmp_path: Path) -> None:
 def test_invalid_exception_config_rejected(tmp_path: Path, replacement: str, message: str) -> None:
     content = Path("config/libraries.toml").read_text(encoding="utf-8")
     originals = {
-        'id = "python-315-pyarrow"': 'id = "python-315-polars"',
+        'id = "python-315-scipy"': 'id = "python-315-polars"',
         'libraries = ["unknown"]': 'libraries = ["data", "engineer"]',
         'prerelease_exception = "unknown"': 'prerelease_exception = "python-315-polars"',
         'expires_on = "2026-09-30"': "expires_on = 2026-09-30",

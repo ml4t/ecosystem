@@ -1,8 +1,8 @@
-# Decision 0003: Diagnostic Python 3.15 PyArrow exception
+# Decision 0003: Diagnostic Python 3.15 dependency exception
 
-**Status**: Proposed
-**Date**: 2026-08-25
-**Approver**: Pending review
+**Status**: Accepted
+**Date**: 2026-09-05
+**Approver**: Stefan Jansen
 **Expires**: 2026-09-30
 
 ## Context
@@ -12,28 +12,27 @@ SciPy 1.18.0 did not publish compatible wheels. That evidence no longer describe
 release. SciPy 1.18.1 publishes CPython 3.15 wheels for Linux, macOS, and Windows, and
 `ml4t-diagnostic` 0.1.2 falls outside the recorded version range.
 
-Installing `ml4t-diagnostic` 0.1.2 on CPython 3.15.0rc1 now reaches PyArrow 25.0.1. PyArrow has no
-CPython 3.15 wheels, so installation attempts a source build and fails before the library can be
-imported or tested. Apache Arrow issues
-[#48172](https://github.com/apache/arrow/issues/48172) and
-[#50091](https://github.com/apache/arrow/issues/50091) track Python 3.15 support for Arrow 26.0.0.
-[Diagnostic issue #45](https://github.com/ml4t/diagnostic/issues/45) owns library qualification
-against that release.
+Installing the published package on CPython 3.15.0rc1 fails before the library can be imported or
+tested. PyArrow 25.0.1 has no CPython 3.15 wheels. The stable Pydantic 2.13.5 release resolves to
+pydantic-core 2.46.5, which also has no CPython 3.15 wheel. Both packages attempt source builds that
+fail in a clean installation. [Diagnostic issue #45](https://github.com/ml4t/diagnostic/issues/45)
+records the reproduction and owns qualification of the complete dependency set.
 
-## Proposed decision
+## Decision
 
-Replace Diagnostic's `python-315-scipy` exception with `python-315-pyarrow`. Limit the replacement
-to `ml4t-diagnostic` versions `>=0.1.2,<0.1.3`. Keep the existing 2026-09-30 expiry and the existing
-requirement to pass Python 3.12 through 3.14 on Linux, macOS, and Windows.
+Extend Diagnostic's existing `python-315-scipy` exception to `ml4t-diagnostic` versions
+`>=0.1.2,<0.1.4`. The identifier remains unchanged because it is an established workflow interface;
+the executable exception record, not the identifier, states the current evidence. Keep the existing
+2026-09-30 expiry and the requirement to pass Python 3.12 through 3.14 on Linux, macOS, and Windows.
 
 This decision supersedes only the Diagnostic clause in Decision 0002. The Polars exception is
 unchanged.
 
 ## Consequences
 
-Diagnostic 0.1.2 remains installable only on Python 3.12 through 3.14 while the exception is active.
-The next Diagnostic release is not covered. It must either pass the complete Python 3.15 matrix or
+Diagnostic 0.1.2 and 0.1.3 remain installable only on Python 3.12 through 3.14 while the exception is
+active. Diagnostic 0.1.4 is not covered. It must either pass the complete Python 3.15 matrix or
 receive a separately reviewed, evidence-backed exception before publication.
 
-The exception must be removed before its expiry, or sooner if compatible PyArrow wheels pass the
-complete Diagnostic matrix.
+The exception must be removed before its expiry, or sooner if the complete dependency set passes the
+Diagnostic matrix on Python 3.15.
