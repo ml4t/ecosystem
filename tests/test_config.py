@@ -28,7 +28,8 @@ def test_load_repository_config() -> None:
     assert diagnostic_exception.libraries == ("diagnostic",)
     assert diagnostic_exception.covers_version("0.1.2")
     assert diagnostic_exception.covers_version("0.1.3")
-    assert not diagnostic_exception.covers_version("0.1.4")
+    assert diagnostic_exception.covers_version("0.1.4")
+    assert not diagnostic_exception.covers_version("0.1.5")
 
 
 def test_unknown_library_raises() -> None:

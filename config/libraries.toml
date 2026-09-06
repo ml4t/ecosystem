@@ -30,7 +30,7 @@ issue = "https://github.com/ml4t/ecosystem/issues/2"
 id = "python-315-scipy"
 criterion = "python-3.15-prerelease"
 libraries = ["diagnostic"]
-affected_versions = ">=0.1.2,<0.1.4"
+affected_versions = ">=0.1.2,<0.1.5"
 rationale = "The published dependency set lacks required CPython 3.15 wheels for PyArrow 25.0.1 and pydantic-core 2.46.5."
 evidence = [
     "https://github.com/ml4t/diagnostic/issues/45",
