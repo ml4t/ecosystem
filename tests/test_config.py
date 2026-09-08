@@ -14,6 +14,19 @@ def test_load_repository_config() -> None:
     assert config.library("backtest").distribution == "ml4t-backtest"
     assert config.policy.stable_python == ("3.12", "3.13", "3.14")
     assert config.policy.maintainer_logins == ("stefan-jansen",)
+    assert config.policy.author_name == "Stefan Jansen"
+    assert config.policy.author_email == "stefan@applied-ai.com"
+    assert config.policy.maintainer_name == "Stefan Jansen"
+    assert config.policy.maintainer_email == "pm@ml4trading.io"
+    assert config.policy.required_project_urls == (
+        "Homepage",
+        "Documentation",
+        "Repository",
+        "Issues",
+        "Changelog",
+    )
+    assert config.library("data").deprecated_identifiers == ("QLDM_DATA_ROOT", "QldmError")
+    assert config.library("backtest").deprecated_identifiers == ()
     assert config.library("data").prerelease_exception == "python-315-polars"
     assert config.library("diagnostic").prerelease_exception == "python-315-scipy"
     assert config.library("backtest").prerelease_exception is None
@@ -45,23 +58,40 @@ def test_unknown_library_raises() -> None:
 @pytest.mark.parametrize(
     ("replacement", "message"),
     [
-        ("schema_version = 2", "schema_version"),
+        ("schema_version = 1", "schema_version"),
         ('owner = ""', "owner"),
         ("classification_target_minutes = 0", "classification_target_minutes"),
         ("response_target_business_days = 0", "response_target_business_days"),
         ('stable_python = "3.12"', "stable_python"),
         ("maintainer_logins = []", "maintainer_logins"),
+        ('author_email = ""', "author_email"),
+        ("description_minimum_characters = 0", "description_minimum_characters"),
+        ("description_maximum_characters = 39", "description_maximum_characters"),
+        ("required_project_urls = []", "required_project_urls"),
+        ('required_keywords = ["finance", "finance"]', "duplicates"),
+        ("minimum_keywords = 4", "library-specific keywords"),
     ],
 )
 def test_invalid_config_rejected(tmp_path: Path, replacement: str, message: str) -> None:
     content = Path("config/libraries.toml").read_text(encoding="utf-8")
     originals = {
-        "schema_version = 2": "schema_version = 1",
+        "schema_version = 1": "schema_version = 2",
         'owner = ""': 'owner = "ml4t"',
         "classification_target_minutes = 0": "classification_target_minutes = 60",
         "response_target_business_days = 0": "response_target_business_days = 2",
         'stable_python = "3.12"': 'stable_python = ["3.12", "3.13", "3.14"]',
         "maintainer_logins = []": 'maintainer_logins = ["stefan-jansen"]',
+        'author_email = ""': 'author_email = "stefan@applied-ai.com"',
+        "description_minimum_characters = 0": "description_minimum_characters = 40",
+        "description_maximum_characters = 39": "description_maximum_characters = 160",
+        "required_project_urls = []": (
+            'required_project_urls = ["Homepage", "Documentation", "Repository", "Issues", '
+            '"Changelog"]'
+        ),
+        'required_keywords = ["finance", "finance"]': (
+            'required_keywords = ["finance", "quantitative-finance", "algorithmic-trading"]'
+        ),
+        "minimum_keywords = 4": "minimum_keywords = 5",
     }
     path = tmp_path / "invalid.toml"
     path.write_text(content.replace(originals[replacement], replacement), encoding="utf-8")
@@ -123,9 +153,9 @@ def test_invalid_exception_config_rejected(tmp_path: Path, replacement: str, mes
 @pytest.mark.parametrize(
     ("content", "message"),
     [
-        ('schema_version = 1\nowner = "ml4t"\nlibraries = []\n', "policy must be a table"),
+        ('schema_version = 2\nowner = "ml4t"\nlibraries = []\n', "policy must be a table"),
         (
-            'schema_version = 1\nowner = "ml4t"\n[policy]\nminimum_python = "3.12"\n',
+            'schema_version = 2\nowner = "ml4t"\n[policy]\nminimum_python = "3.12"\n',
             "classification_target_minutes",
         ),
     ],

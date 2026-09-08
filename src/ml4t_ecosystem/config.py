@@ -31,9 +31,33 @@ def _required_str(mapping: dict[str, Any], key: str) -> str:
 
 def _string_tuple(mapping: dict[str, Any], key: str) -> tuple[str, ...]:
     value = mapping.get(key)
-    if not isinstance(value, list) or not value or not all(isinstance(item, str) for item in value):
+    if (
+        not isinstance(value, list)
+        or not value
+        or not all(isinstance(item, str) and item.strip() for item in value)
+    ):
         raise ValueError(f"{key} must be a non-empty string list")
+    if len(value) != len(set(value)):
+        raise ValueError(f"{key} must not contain duplicates")
     return tuple(value)
+
+
+def _optional_string_tuple(mapping: dict[str, Any], key: str) -> tuple[str, ...]:
+    value = mapping.get(key, [])
+    if not isinstance(value, list) or not all(
+        isinstance(item, str) and item.strip() for item in value
+    ):
+        raise ValueError(f"{key} must be a string list")
+    if len(value) != len(set(value)):
+        raise ValueError(f"{key} must not contain duplicates")
+    return tuple(value)
+
+
+def _positive_int(mapping: dict[str, Any], key: str) -> int:
+    value = mapping.get(key)
+    if not isinstance(value, int) or value <= 0:
+        raise ValueError(f"{key} must be a positive integer")
+    return value
 
 
 def _optional_str(mapping: dict[str, Any], key: str) -> str | None:
@@ -57,19 +81,23 @@ def load_config(path: Path) -> EcosystemConfig:
     with path.open("rb") as handle:
         raw = tomllib.load(handle)
 
-    if raw.get("schema_version") != 1:
-        raise ValueError("schema_version must be 1")
+    if raw.get("schema_version") != 2:
+        raise ValueError("schema_version must be 2")
     owner = _required_str(raw, "owner")
 
     raw_policy = raw.get("policy")
     if not isinstance(raw_policy, dict):
         raise ValueError("policy must be a table")
-    classification = raw_policy.get("classification_target_minutes")
-    response = raw_policy.get("response_target_business_days")
-    if not isinstance(classification, int) or classification <= 0:
-        raise ValueError("classification_target_minutes must be a positive integer")
-    if not isinstance(response, int) or response <= 0:
-        raise ValueError("response_target_business_days must be a positive integer")
+    classification = _positive_int(raw_policy, "classification_target_minutes")
+    response = _positive_int(raw_policy, "response_target_business_days")
+    description_minimum = _positive_int(raw_policy, "description_minimum_characters")
+    description_maximum = _positive_int(raw_policy, "description_maximum_characters")
+    if description_maximum < description_minimum:
+        raise ValueError("description_maximum_characters must not be less than the minimum")
+    minimum_keywords = _positive_int(raw_policy, "minimum_keywords")
+    required_keywords = _string_tuple(raw_policy, "required_keywords")
+    if minimum_keywords < len(required_keywords) + 2:
+        raise ValueError("minimum_keywords must allow at least two library-specific keywords")
     policy = Policy(
         minimum_python=_required_str(raw_policy, "minimum_python"),
         stable_python=_string_tuple(raw_policy, "stable_python"),
@@ -78,6 +106,18 @@ def load_config(path: Path) -> EcosystemConfig:
         classification_target_minutes=classification,
         response_target_business_days=response,
         maintainer_logins=_string_tuple(raw_policy, "maintainer_logins"),
+        author_name=_required_str(raw_policy, "author_name"),
+        author_email=_required_str(raw_policy, "author_email"),
+        maintainer_name=_required_str(raw_policy, "maintainer_name"),
+        maintainer_email=_required_str(raw_policy, "maintainer_email"),
+        description_minimum_characters=description_minimum,
+        description_maximum_characters=description_maximum,
+        minimum_keywords=minimum_keywords,
+        required_keywords=required_keywords,
+        required_classifiers=_string_tuple(raw_policy, "required_classifiers"),
+        required_project_urls=_string_tuple(raw_policy, "required_project_urls"),
+        required_github_topics=_string_tuple(raw_policy, "required_github_topics"),
+        forbidden_public_markers=_string_tuple(raw_policy, "forbidden_public_markers"),
     )
 
     raw_libraries = raw.get("libraries")
@@ -97,6 +137,9 @@ def load_config(path: Path) -> EcosystemConfig:
                 local_checkout=_required_str(raw_library, "local_checkout"),
                 development_workspace=_required_str(raw_library, "development_workspace"),
                 prerelease_exception=_optional_str(raw_library, "prerelease_exception"),
+                deprecated_identifiers=_optional_string_tuple(
+                    raw_library, "deprecated_identifiers"
+                ),
             )
         )
 
@@ -176,7 +219,7 @@ def load_config(path: Path) -> EcosystemConfig:
         raise ValueError(f"unreferenced exceptions: {unreferenced}")
 
     return EcosystemConfig(
-        schema_version=1,
+        schema_version=2,
         owner=owner,
         policy=policy,
         libraries=tuple(libraries),

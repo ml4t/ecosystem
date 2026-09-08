@@ -23,6 +23,7 @@ class Library:
     local_checkout: str
     development_workspace: str
     prerelease_exception: str | None = None
+    deprecated_identifiers: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -61,6 +62,18 @@ class Policy:
     classification_target_minutes: int
     response_target_business_days: int
     maintainer_logins: tuple[str, ...]
+    author_name: str
+    author_email: str
+    maintainer_name: str
+    maintainer_email: str
+    description_minimum_characters: int
+    description_maximum_characters: int
+    minimum_keywords: int
+    required_keywords: tuple[str, ...]
+    required_classifiers: tuple[str, ...]
+    required_project_urls: tuple[str, ...]
+    required_github_topics: tuple[str, ...]
+    forbidden_public_markers: tuple[str, ...]
 
 
 @dataclass(frozen=True)
