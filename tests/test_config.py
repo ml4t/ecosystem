@@ -27,6 +27,13 @@ def test_load_repository_config() -> None:
     )
     assert config.library("data").deprecated_identifiers == ("QLDM_DATA_ROOT", "QldmError")
     assert config.library("backtest").deprecated_identifiers == ()
+    assert config.policy.required_workflow_files == (
+        "ci.yml",
+        "ecosystem.yml",
+        "docs.yml",
+        "release.yml",
+    )
+    assert config.policy.documentation_repository == "ml4t/website"
     assert config.library("data").prerelease_exception == "python-315-polars"
     assert config.library("diagnostic").prerelease_exception == "python-315-scipy"
     assert config.library("backtest").prerelease_exception is None
@@ -70,6 +77,7 @@ def test_unknown_library_raises() -> None:
         ("required_project_urls = []", "required_project_urls"),
         ('required_keywords = ["finance", "finance"]', "duplicates"),
         ("minimum_keywords = 4", "library-specific keywords"),
+        ('documentation_repository = ""', "documentation_repository"),
     ],
 )
 def test_invalid_config_rejected(tmp_path: Path, replacement: str, message: str) -> None:
@@ -92,6 +100,7 @@ def test_invalid_config_rejected(tmp_path: Path, replacement: str, message: str)
             'required_keywords = ["finance", "quantitative-finance", "algorithmic-trading"]'
         ),
         "minimum_keywords = 4": "minimum_keywords = 5",
+        'documentation_repository = ""': 'documentation_repository = "ml4t/website"',
     }
     path = tmp_path / "invalid.toml"
     path.write_text(content.replace(originals[replacement], replacement), encoding="utf-8")
@@ -119,6 +128,17 @@ def test_duplicate_and_incomplete_inventory_rejected(tmp_path: Path) -> None:
         content.replace('repository = "models"', 'repository = "data"', 1), encoding="utf-8"
     )
     with pytest.raises(ValueError, match="repositories must be unique"):
+        load_config(path)
+
+    path.write_text(
+        content.replace(
+            'docs_url = "https://www.ml4trading.io/docs/models/"',
+            'docs_url = "https://example.com/models/"',
+            1,
+        ),
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="canonical route"):
         load_config(path)
 
 

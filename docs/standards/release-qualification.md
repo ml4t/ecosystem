@@ -12,6 +12,47 @@ A stable library release requires evidence for all applicable criteria:
 - backward-compatibility assessment and release notes; and
 - no unresolved critical or high-priority correctness finding affecting the release.
 
+## Pull-request and default-branch gates
+
+Every file named by `required_workflow_files` in `config/libraries.toml` exists. Pull requests and
+pushes to `main` run, at minimum:
+
+- locked dependency installation with `uv`;
+- `ruff` lint and format checks;
+- `ty` type checking;
+- the repository's unit, integration, regression, and contract tests with its enforced coverage
+  threshold;
+- a strict documentation build;
+- source distribution and wheel builds followed by artifact metadata validation; and
+- the central supported and prerelease Python and operating-system qualification matrix.
+
+Workflows cancel superseded branch runs without cancelling a release or production documentation
+deployment. Required checks retain stable names so branch protection cannot silently stop enforcing
+them. A green default branch is necessary but does not replace qualification of the release commit.
+
+## Commit-bound release process
+
+A release workflow accepts an explicit version and candidate commit, then verifies that the commit
+is the intended `main` revision and that the version is absent from Git tags, GitHub releases, and
+PyPI. It performs these steps in order:
+
+1. run all release and ecosystem qualification against the candidate commit;
+2. build the source distribution and wheel once;
+3. install the wheel in a clean environment and verify its public import, version, README quick
+   start, license, and canonical metadata;
+4. record a manifest containing the version, candidate commit, artifact names, and SHA-256 digests;
+5. deploy documentation built from that commit and verify its canonical route and displayed
+   library, version, and revision;
+6. publish the already verified artifacts to PyPI through trusted publishing;
+7. create the Git tag and GitHub release for the same commit, attaching those artifacts and the
+   manifest; and
+8. verify the PyPI metadata, install the published wheel, check the GitHub release digests, and
+   repeat the deployed-documentation identity check.
+
+No later job rebuilds an artifact. A failure before publication creates no tag, GitHub release, or
+PyPI version. A failure after an irreversible publication stops further publication and records a
+recovery issue; it never reuses the version for different bytes.
+
 Metadata qualification compares the values from the tagged source, built source distribution,
 built wheel, PyPI JSON response, GitHub repository settings, and deployed documentation. A mismatch
 fails qualification even when each value is individually plausible. The canonical identity,

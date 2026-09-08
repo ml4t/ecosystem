@@ -13,6 +13,17 @@ Release qualification checks:
 - optional dependency isolation; and
 - reproducible source and wheel metadata.
 
+Pull requests run dependency review and static security analysis with the repository's supported
+languages. The default branch and release candidate run a vulnerability scan of the resolved runtime
+and build dependencies. A release fails for an unapproved high or critical finding. Any temporary
+exception identifies the advisory, affected versions, mitigation, approver, and expiration date.
+
+Workflow permissions default to `contents: read` and are widened only on the job that needs them.
+Every third-party action and reusable workflow is pinned to a full commit SHA, with the release
+version recorded in a comment for review. Publication uses GitHub environments and PyPI trusted
+publishing rather than a long-lived upload token. Secrets are available only to the protected job
+that consumes them and never to pull-request code from an untrusted fork.
+
 Each library enables GitHub private vulnerability reporting and documents it in `SECURITY.md`.
 Security fixes use coordinated disclosure. Public issues must not contain unpublished exploit details
 or credentials.

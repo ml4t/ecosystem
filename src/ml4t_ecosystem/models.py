@@ -74,6 +74,9 @@ class Policy:
     required_project_urls: tuple[str, ...]
     required_github_topics: tuple[str, ...]
     forbidden_public_markers: tuple[str, ...]
+    required_workflow_files: tuple[str, ...]
+    documentation_base_url: str
+    documentation_repository: str
 
 
 @dataclass(frozen=True)

@@ -118,6 +118,9 @@ def load_config(path: Path) -> EcosystemConfig:
         required_project_urls=_string_tuple(raw_policy, "required_project_urls"),
         required_github_topics=_string_tuple(raw_policy, "required_github_topics"),
         forbidden_public_markers=_string_tuple(raw_policy, "forbidden_public_markers"),
+        required_workflow_files=_string_tuple(raw_policy, "required_workflow_files"),
+        documentation_base_url=_required_str(raw_policy, "documentation_base_url"),
+        documentation_repository=_required_str(raw_policy, "documentation_repository"),
     )
 
     raw_libraries = raw.get("libraries")
@@ -153,6 +156,13 @@ def load_config(path: Path) -> EcosystemConfig:
     repositories = [library.repository for library in libraries]
     if len(repositories) != len(set(repositories)):
         raise ValueError("library repositories must be unique")
+    documentation_base_url = policy.documentation_base_url.rstrip("/")
+    for library in libraries:
+        expected_docs_url = f"{documentation_base_url}/{library.key}/"
+        if library.docs_url != expected_docs_url:
+            raise ValueError(
+                f"library {library.key} docs_url must be canonical route {expected_docs_url}"
+            )
 
     raw_exceptions = raw.get("exceptions", [])
     if not isinstance(raw_exceptions, list):

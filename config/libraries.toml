@@ -35,6 +35,9 @@ forbidden_public_markers = [
     "dev@quantlab.io",
     "support@example.com",
 ]
+required_workflow_files = ["ci.yml", "ecosystem.yml", "docs.yml", "release.yml"]
+documentation_base_url = "https://www.ml4trading.io/docs/"
+documentation_repository = "ml4t/website"
 
 [[exceptions]]
 id = "python-315-polars"

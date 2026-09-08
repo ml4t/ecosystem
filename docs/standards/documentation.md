@@ -70,10 +70,23 @@ entry point rather than a duplicate documentation site.
 
 - MkDocs is the documentation generator.
 - `uv run mkdocs build --strict` must pass in pull requests and releases.
-- The canonical route is `https://www.ml4trading.io/docs/{library}/`.
+- The canonical base URL and website repository are defined in `config/libraries.toml`.
+- Each library route is exactly `{documentation_base_url}{library}/`.
 - The deployed site must identify the correct library and released version.
 - Navigation, internal links, code samples, and API references must resolve.
 - A documentation deployment failure blocks release qualification.
+
+The library workflow builds documentation from the release candidate, records its library, version,
+and full commit in the rendered site, and transfers an immutable artifact to the configured website
+repository. The website deploys that artifact under the library's route without rebuilding it. The
+deployment job validates required credentials before changing external state and is protected from
+untrusted pull-request code.
+
+Production website changes require the separate approval applicable to `ml4t/website`. After
+deployment, an automated check fetches the canonical route and verifies the expected library,
+version, commit, navigation, assets, internal links, and representative API pages. All seven routes
+in the inventory are first-class website content; the website's own inventory and tests must not
+describe a smaller set.
 
 The ecosystem index describes the complete workflow. Library content remains in its release
 repository and is reviewed with the code it documents.
