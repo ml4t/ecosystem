@@ -21,8 +21,9 @@ class Library:
     import_package: str
     docs_url: str
     local_checkout: str
-    development_workspace: str
+    development_workspace: str | None
     prerelease_exception: str | None = None
+    deprecated_identifiers: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -61,6 +62,21 @@ class Policy:
     classification_target_minutes: int
     response_target_business_days: int
     maintainer_logins: tuple[str, ...]
+    author_name: str
+    author_email: str
+    maintainer_name: str
+    maintainer_email: str
+    description_minimum_characters: int
+    description_maximum_characters: int
+    minimum_keywords: int
+    required_keywords: tuple[str, ...]
+    required_classifiers: tuple[str, ...]
+    required_project_urls: tuple[str, ...]
+    required_github_topics: tuple[str, ...]
+    required_workflow_files: tuple[str, ...]
+    documentation_base_url: str
+    documentation_repository: str
+    homepage_url: str
 
 
 @dataclass(frozen=True)
@@ -109,7 +125,10 @@ class LibraryReport:
     library: Library
     observed_at: str
     source_commit: str | None = None
+    release_commit: str | None = None
     published_version: str | None = None
+    documentation_commit: str | None = None
+    documentation_version: str | None = None
     checks: list[CheckResult] = field(default_factory=list)
 
     @property
@@ -123,7 +142,33 @@ class LibraryReport:
             "library": asdict(self.library),
             "observed_at": self.observed_at,
             "source_commit": self.source_commit,
+            "release_commit": self.release_commit,
             "published_version": self.published_version,
+            "documentation_commit": self.documentation_commit,
+            "documentation_version": self.documentation_version,
+            "passed": self.passed,
+            "checks": [check.to_dict() for check in self.checks],
+        }
+
+
+@dataclass
+class WorkspaceReport:
+    """Local release-checkout and development-sidecar compliance results."""
+
+    library: Library
+    root: str
+    checks: list[CheckResult] = field(default_factory=list)
+
+    @property
+    def passed(self) -> bool:
+        """Return whether all local workspace checks passed."""
+        return bool(self.checks) and all(check.status == "pass" for check in self.checks)
+
+    def to_dict(self) -> dict[str, object]:
+        """Return a JSON-compatible representation without sidecar file contents."""
+        return {
+            "library": self.library.key,
+            "root": self.root,
             "passed": self.passed,
             "checks": [check.to_dict() for check in self.checks],
         }

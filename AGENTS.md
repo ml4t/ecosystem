@@ -10,12 +10,20 @@ work management for the stable ML4T libraries. It does not own their source code
 | Data | `ml4t/data` | `ml4t.data` | `ml4t-data/` | `ml4t-data-dev/` |
 | Engineer | `ml4t/engineer` | `ml4t.engineer` | `ml4t-engineer/` | `ml4t-engineer-dev/` |
 | Backtest | `ml4t/backtest` | `ml4t.backtest` | `ml4t-backtest/` | `ml4t-backtest-dev/` |
-| Specs | `ml4t/specs` | `ml4t.specs` | `ml4t-specs/` | `ml4t-specs-dev/` when needed |
+| Specs | `ml4t/specs` | `ml4t.specs` | `ml4t-specs/` | none, managed from here |
 | Live | `ml4t/live` | `ml4t.live` | `ml4t-live/` | `ml4t-live-dev/` |
 | Diagnostic | `ml4t/diagnostic` | `ml4t.diagnostic` | `ml4t-diagnostic/` | `ml4t-diagnostic-dev/` |
 | Models | `ml4t/models` | `ml4t.models` | `ml4t-models/` | `ml4t-models-dev/` |
 
 Repositories outside this table are not covered by stable-library qualification.
+
+**Specs has no development workspace and is not getting one.** It is small enough
+that its work is managed directly from this repository and from its own
+`ml4t-specs/` checkout, which carries public agent orientation in `AGENTS.md`.
+Every other library's sandbox config grants write access to
+`ml4t-specs/`, so agents reach it from wherever they are working. Do not create
+`ml4t-specs-dev/`; if the volume of specs work ever justifies one, change this
+paragraph first.
 
 ## Local Repository Model
 
@@ -35,7 +43,7 @@ Before changing a library, read both this file and the target library or develop
 
 Each library's release checkout also carries `docs/book-guide/index.md`: the authoritative
 chapter-to-API cross-reference (book notebook -> concept -> library API -> docs page). An agent
-mapping a book chapter to a library's surface should read that file first, not grep the six repos.
+mapping a book chapter to a library's surface should read that file first, not grep the seven repos.
 
 ## Sources of Truth
 
@@ -46,10 +54,32 @@ Use these authorities in order:
 3. The library's root `AGENTS.md` for repository-specific commands and constraints.
 4. `docs/standards/` in this repository for requirements shared by all libraries.
 5. `status/` and `reviews/` for current and dated cross-library evidence.
-6. `.workspace/` for local work state only. It is not public policy and is not tracked here.
+6. `.workspace/` for local agent state only. It is not public policy and is not tracked here (see "Local agent state").
 
 Do not treat a stale local tag, feature branch, development-workspace issue draft, or copied status
 table as current release evidence.
+
+## Local agent state
+
+Shared by Claude and Codex, and **untracked by design**: the root `.gitignore`
+ignores everything not explicitly allowed, so none of this is published.
+
+| Path | What |
+|---|---|
+| `.workspace/memory/MEMORY_INDEX.md` | Index of curated memory: `status`, `last_referenced`, `tokens`, `anchors` per file |
+| `.workspace/memory/*.md` | Curated memory, read on demand. Currently conventions, deployment, metrics, status |
+| `.workspace/PROJECT_MAP.md` | Ecosystem overview, package relationships, tool stack |
+| `.workspace/transitions/YYYY-MM-DD/HHMMSS.md` | Session progress, one file per event |
+| `.workspace/work/` | Active work units |
+
+Read a memory file when its topic is relevant; the index says what exists and
+whether it is current. This file does not `@`-include the index, unlike the
+per-library `AGENTS.md` files: the index is untracked here, so an include would
+dangle for anyone who clones the public repository.
+
+All of this moved out of `.claude/` on 2026-09-08. `.claude/` now holds only
+Claude-specific configuration, and transitions are written by the `transition`
+plugin's own hooks rather than a per-project one.
 
 ## Standard Work Lifecycle
 
@@ -131,6 +161,18 @@ outside contributors and downstream users, not a backup. Confirm before pushing 
 task already authorizes publication. This is the narrow exception to the standing "push private repos
 freely" rule in `~/.claude/CLAUDE.md`; it applies because these repos are public, not because pushing
 is risky in general.
+
+## Public Repository Boundary
+
+This repository remains public because contributors to the seven public libraries need one visible
+source for shared standards, security reporting, compatibility decisions, and independently
+executable qualification checks. `README.md`, `CONTRIBUTING.md`, `SECURITY.md`, `docs/standards/`,
+and `decisions/` are the contributor-facing policy surface. `config/`, `src/`, `tests/`, `status/`,
+and `reviews/` provide the inventory, implementation, and public evidence behind that policy.
+
+Internal planning, transitions, memory, credentials, and private security material stay in ignored
+`.workspace/` state or the private development sidecars. Do not add internal operational detail to
+tracked files merely because the repository is public.
 
 ## Safety
 

@@ -26,18 +26,31 @@ def render_markdown(reports: list[LibraryReport]) -> str:
     lines = [
         "# Current qualification status",
         "",
-        "This file is generated from PyPI and GitHub evidence. Do not edit it by hand.",
+        (
+            "This file is generated from PyPI, GitHub, and deployed documentation evidence. "
+            "Do not edit it by hand."
+        ),
         "",
-        "| Library | Version | Commit evidence | Result | Failed or unknown checks |",
-        "|---|---:|---|---|---|",
+        (
+            "| Library | PyPI version | Release commit | Main commit | Docs version | "
+            "Docs commit | Result | Failed or unknown checks |"
+        ),
+        "|---|---:|---|---|---:|---|---|---|",
     ]
     for report in reports:
         failures = [check.code for check in report.checks if check.status != "pass"]
         lines.append(
-            "| {key} | {version} | {commit} | {result} | {failures} |".format(
+            (
+                "| {key} | {version} | {release_commit} | {commit} | {docs_version} | "
+                "{docs_commit} | "
+                "{result} | {failures} |"
+            ).format(
                 key=report.library.key,
                 version=report.published_version or "unknown",
+                release_commit=report.release_commit or "unknown",
                 commit=report.source_commit or "unknown",
+                docs_version=report.documentation_version or "unknown",
+                docs_commit=report.documentation_commit or "unknown",
                 result="PASS" if report.passed else "FAIL",
                 failures=", ".join(failures) if failures else "none",
             )

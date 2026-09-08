@@ -5,12 +5,27 @@ description = "Shared standards and qualification tooling for ML4T libraries"
 readme = "README.md"
 requires-python = ">=3.12"
 license = "MIT"
-authors = [{ name = "Stefan Jansen" }]
+authors = [{ name = "Stefan Jansen", email = "stefan@applied-ai.com" }]
+maintainers = [{ name = "Stefan Jansen", email = "pm@ml4trading.io" }]
+keywords = [
+    "finance",
+    "quantitative-finance",
+    "algorithmic-trading",
+    "release-qualification",
+    "software-standards",
+]
 dependencies = [
     "httpx>=0.28,<1",
     "packaging>=24,<27",
     "pyyaml>=6.0,<7",
 ]
+
+[project.urls]
+Homepage = "https://www.ml4trading.io/"
+Documentation = "https://ml4t.github.io/ecosystem/"
+Repository = "https://github.com/ml4t/ecosystem"
+Issues = "https://github.com/ml4t/ecosystem/issues"
+Changelog = "https://github.com/ml4t/ecosystem/releases"
 
 [project.scripts]
 ml4t-ecosystem = "ml4t_ecosystem.cli:main"

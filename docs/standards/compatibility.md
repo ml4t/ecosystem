@@ -30,3 +30,8 @@ missing, applied to another repository, outside its version scope, or expired.
 
 Hardware-specific capabilities such as CUDA require a separate matrix. Passing the general matrix
 does not establish hardware support.
+
+The shared matrix is a minimum, not a replacement for capability-specific tests. A library keeps
+its applicable provider, broker, licensed-framework, paper-trading, recovery, performance, and
+hardware checks. Secrets or unavailable hardware may move those checks to protected environments,
+but must not be replaced with mocks that only restate the implementation.

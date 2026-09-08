@@ -60,8 +60,10 @@ def test_collect_command(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Non
 
     monkeypatch.setattr("ml4t_ecosystem.cli.GitHubClient", Client)
     monkeypatch.setattr("ml4t_ecosystem.cli.PyPIClient", Client)
+    monkeypatch.setattr("ml4t_ecosystem.cli.DocumentationClient", Client)
     monkeypatch.setattr(
-        "ml4t_ecosystem.cli.audit_all", lambda config, github, pypi: [sample_report(passed=False)]
+        "ml4t_ecosystem.cli.audit_all",
+        lambda config, github, pypi, documentation: [sample_report(passed=False)],
     )
 
     assert main(["collect", "--output", str(tmp_path)]) == 1
@@ -92,6 +94,19 @@ def test_monitor_requires_authentication(monkeypatch: pytest.MonkeyPatch) -> Non
 
     with pytest.raises(SystemExit, match="GITHUB_TOKEN is required"):
         main(["monitor"])
+
+
+def test_audit_workspaces_command(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setattr(
+        "ml4t_ecosystem.cli.audit_workspaces",
+        lambda root, config: [sample_report(passed=False)],
+    )
+
+    assert main(["audit-workspaces", "--root", str(tmp_path)]) == 1
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["reports"][0]["passed"] is False
 
 
 @pytest.mark.parametrize(

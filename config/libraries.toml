@@ -1,4 +1,4 @@
-schema_version = 1
+schema_version = 2
 owner = "ml4t"
 
 [policy]
@@ -9,6 +9,29 @@ operating_systems = ["ubuntu-latest", "macos-latest", "windows-latest"]
 classification_target_minutes = 60
 response_target_business_days = 2
 maintainer_logins = ["stefan-jansen"]
+author_name = "Stefan Jansen"
+author_email = "stefan@applied-ai.com"
+maintainer_name = "Stefan Jansen"
+maintainer_email = "pm@ml4trading.io"
+description_minimum_characters = 40
+description_maximum_characters = 160
+minimum_keywords = 5
+required_keywords = ["finance", "quantitative-finance", "algorithmic-trading"]
+required_classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Typing :: Typed",
+]
+required_project_urls = ["Homepage", "Documentation", "Repository", "Issues", "Changelog"]
+required_github_topics = ["ml4t", "python", "quantitative-finance", "algorithmic-trading"]
+required_workflow_files = ["ci.yml", "ecosystem.yml", "docs.yml", "release.yml"]
+documentation_base_url = "https://www.ml4trading.io/docs/"
+documentation_repository = "ml4t/website"
+homepage_url = "https://www.ml4trading.io/"
 
 [[exceptions]]
 id = "python-315-polars"
@@ -52,6 +75,7 @@ docs_url = "https://www.ml4trading.io/docs/data/"
 local_checkout = "ml4t-data"
 development_workspace = "ml4t-data-dev"
 prerelease_exception = "python-315-polars"
+deprecated_identifiers = ["QLDM_DATA_ROOT", "QldmError"]
 
 [[libraries]]
 key = "engineer"
@@ -79,7 +103,6 @@ distribution = "ml4t-specs"
 import_package = "ml4t.specs"
 docs_url = "https://www.ml4trading.io/docs/specs/"
 local_checkout = "ml4t-specs"
-development_workspace = "ml4t-specs-dev"
 
 [[libraries]]
 key = "live"
