@@ -4,7 +4,7 @@ import json
 import httpx
 import pytest
 
-from ml4t_ecosystem.clients import EvidenceError, GitHubClient, PyPIClient
+from ml4t_ecosystem.clients import DocumentationClient, EvidenceError, GitHubClient, PyPIClient
 
 
 def response(request: httpx.Request) -> httpx.Response:
@@ -13,6 +13,10 @@ def response(request: httpx.Request) -> httpx.Response:
         return httpx.Response(200, json={"default_branch": "main"})
     if path == "/repos/ml4t/data/commits/main":
         return httpx.Response(200, json={"sha": "abc123"})
+    if path == "/repos/ml4t/data/commits/v0.1.2":
+        return httpx.Response(200, json={"sha": "release123"})
+    if path == "/repos/ml4t/data/commits/missing":
+        return httpx.Response(404, json={"message": "Not Found"})
     if path.endswith("/contents/README.md"):
         encoded = base64.b64encode(b"hello\n").decode()
         return httpx.Response(200, json={"type": "file", "content": encoded})
@@ -38,6 +42,8 @@ def test_github_client_reads_evidence() -> None:
     try:
         assert client.repository("ml4t", "data")["default_branch"] == "main"
         assert client.branch_commit("ml4t", "data", "main") == "abc123"
+        assert client.tag_commit("ml4t", "data", "v0.1.2") == "release123"
+        assert client.tag_commit("ml4t", "data", "missing") is None
         assert client.content("ml4t", "data", "README.md") == "hello\n"
         assert client.content("ml4t", "data", "missing") is None
         assert client.labels("ml4t", "data") == {"type: bug"}
@@ -61,7 +67,7 @@ def test_github_client_reports_source_error() -> None:
 def test_pypi_client_reads_info_and_reports_error() -> None:
     client = PyPIClient(transport=httpx.MockTransport(response))
     try:
-        assert client.package("ml4t-data") == {"version": "0.1.2"}
+        assert client.package("ml4t-data") == {"version": "0.1.2", "_release_files": []}
         with pytest.raises(EvidenceError, match="returned 500"):
             client.package("missing")
     finally:
@@ -137,5 +143,39 @@ def test_invalid_pypi_response_shape() -> None:
     try:
         with pytest.raises(EvidenceError, match="no info object"):
             client.package("ml4t-data")
+    finally:
+        client.close()
+
+
+def test_documentation_client_requires_html() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/docs/data/":
+            return httpx.Response(
+                200,
+                text="<html>data</html>",
+                headers={"content-type": "text/html; charset=utf-8"},
+            )
+        return httpx.Response(404)
+
+    client = DocumentationClient(transport=httpx.MockTransport(handler))
+    try:
+        assert client.page("https://www.ml4trading.io/docs/data/") == "<html>data</html>"
+        with pytest.raises(EvidenceError, match="returned 404"):
+            client.page("https://www.ml4trading.io/docs/missing/")
+    finally:
+        client.close()
+
+
+def test_documentation_client_rejects_non_html() -> None:
+    client = DocumentationClient(
+        transport=httpx.MockTransport(
+            lambda request: httpx.Response(
+                200, text="plain", headers={"content-type": "text/plain"}
+            )
+        )
+    )
+    try:
+        with pytest.raises(EvidenceError, match="did not return HTML"):
+            client.page("https://www.ml4trading.io/docs/data/")
     finally:
         client.close()

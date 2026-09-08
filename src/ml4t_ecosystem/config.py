@@ -117,11 +117,16 @@ def load_config(path: Path) -> EcosystemConfig:
         required_classifiers=_string_tuple(raw_policy, "required_classifiers"),
         required_project_urls=_string_tuple(raw_policy, "required_project_urls"),
         required_github_topics=_string_tuple(raw_policy, "required_github_topics"),
-        forbidden_public_markers=_string_tuple(raw_policy, "forbidden_public_markers"),
         required_workflow_files=_string_tuple(raw_policy, "required_workflow_files"),
         documentation_base_url=_required_str(raw_policy, "documentation_base_url"),
         documentation_repository=_required_str(raw_policy, "documentation_repository"),
+        homepage_url=_required_str(raw_policy, "homepage_url"),
     )
+    if any(
+        Path(name).name != name or not name.endswith(".yml")
+        for name in policy.required_workflow_files
+    ):
+        raise ValueError("required_workflow_files must contain .yml filenames")
 
     raw_libraries = raw.get("libraries")
     if not isinstance(raw_libraries, list):

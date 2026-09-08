@@ -56,7 +56,7 @@ recovery issue; it never reuses the version for different bytes.
 Metadata qualification compares the values from the tagged source, built source distribution,
 built wheel, PyPI JSON response, GitHub repository settings, and deployed documentation. A mismatch
 fails qualification even when each value is individually plausible. The canonical identity,
-required fields, and forbidden public markers come from `config/libraries.toml`.
+required fields, and allowed contact domains come from `config/libraries.toml`.
 
 Deprecated public identifiers are allowed only when the library inventory names them explicitly and
 the release provides a tested replacement path, a runtime deprecation warning, and migration

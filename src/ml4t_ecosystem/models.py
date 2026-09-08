@@ -73,10 +73,10 @@ class Policy:
     required_classifiers: tuple[str, ...]
     required_project_urls: tuple[str, ...]
     required_github_topics: tuple[str, ...]
-    forbidden_public_markers: tuple[str, ...]
     required_workflow_files: tuple[str, ...]
     documentation_base_url: str
     documentation_repository: str
+    homepage_url: str
 
 
 @dataclass(frozen=True)
@@ -125,7 +125,10 @@ class LibraryReport:
     library: Library
     observed_at: str
     source_commit: str | None = None
+    release_commit: str | None = None
     published_version: str | None = None
+    documentation_commit: str | None = None
+    documentation_version: str | None = None
     checks: list[CheckResult] = field(default_factory=list)
 
     @property
@@ -139,7 +142,10 @@ class LibraryReport:
             "library": asdict(self.library),
             "observed_at": self.observed_at,
             "source_commit": self.source_commit,
+            "release_commit": self.release_commit,
             "published_version": self.published_version,
+            "documentation_commit": self.documentation_commit,
+            "documentation_version": self.documentation_version,
             "passed": self.passed,
             "checks": [check.to_dict() for check in self.checks],
         }

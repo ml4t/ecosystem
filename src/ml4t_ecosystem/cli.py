@@ -11,7 +11,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from ml4t_ecosystem.audit import audit_all
-from ml4t_ecosystem.clients import GitHubClient, PyPIClient
+from ml4t_ecosystem.clients import DocumentationClient, GitHubClient, PyPIClient
 from ml4t_ecosystem.config import load_config
 from ml4t_ecosystem.labels import load_labels, sync_labels
 from ml4t_ecosystem.monitor import monitor_all
@@ -61,11 +61,13 @@ def _collect(args: argparse.Namespace) -> int:
     config = load_config(args.config)
     github = GitHubClient(token=os.getenv("GITHUB_TOKEN"))
     pypi = PyPIClient()
+    documentation = DocumentationClient()
     try:
-        reports = audit_all(config, github, pypi)
+        reports = audit_all(config, github, pypi, documentation)
     finally:
         github.close()
         pypi.close()
+        documentation.close()
     write_current_status(reports, args.output)
     failures = sum(not report.passed for report in reports)
     print(f"Collected {len(reports)} libraries; {failures} failed qualification")

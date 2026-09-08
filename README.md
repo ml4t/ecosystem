@@ -15,7 +15,7 @@ the stable ML4T Python libraries.
 
 This repository does not contain library source code and is not a runtime dependency. Start with the
 [ecosystem documentation](https://ml4t.github.io/ecosystem/) or the tracked documents under
-`standards/`, `status/`, `reviews/`, and `decisions/`.
+`docs/standards/`, `status/`, `reviews/`, and `decisions/`.
 
 ## Stable-release policy
 
@@ -24,5 +24,5 @@ Linux, macOS, and Windows. Each supported combination must pass installation, im
 checking, and package build checks before release. The next CPython prerelease becomes a blocking
 compatibility target after beta 1 without being advertised as stable.
 
-See [Compatibility](standards/compatibility.md) and
-[Release qualification](standards/release-qualification.md) for the normative criteria.
+See [Compatibility](docs/standards/compatibility.md) and
+[Release qualification](docs/standards/release-qualification.md) for the normative criteria.

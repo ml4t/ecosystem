@@ -25,7 +25,10 @@ def report(*, passed: bool = True) -> LibraryReport:
         ),
         observed_at=datetime(2026, 8, 11, tzinfo=UTC).isoformat(),
         source_commit="abc123",
+        release_commit="release123",
         published_version="0.1.2",
+        documentation_commit="abc123",
+        documentation_version="0.1.2",
     )
     value.checks.append(CheckResult("test", "pass" if passed else "fail", "result", "evidence"))
     return value
@@ -36,7 +39,7 @@ def test_render_status() -> None:
     markdown = render_markdown([report(passed=False)])
 
     assert '"passed": true' in json_text
-    assert "| data | 0.1.2 | abc123 | FAIL | test |" in markdown
+    assert "| data | 0.1.2 | release123 | abc123 | 0.1.2 | abc123 | FAIL | test |" in markdown
 
 
 def test_write_current_status(tmp_path: Path) -> None:

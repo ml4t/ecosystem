@@ -19,6 +19,8 @@ class AuditGitHub(Protocol):
 
     def branch_commit(self, owner: str, repository: str, branch: str) -> str: ...
 
+    def tag_commit(self, owner: str, repository: str, tag: str) -> str | None: ...
+
     def content(self, owner: str, repository: str, path: str) -> str | None: ...
 
     def labels(self, owner: str, repository: str) -> set[str]: ...
@@ -30,6 +32,12 @@ class PyPIEvidence(Protocol):
     """PyPI evidence required by package qualification."""
 
     def package(self, distribution: str) -> dict[str, Any]: ...
+
+
+class DocumentationEvidence(Protocol):
+    """Deployed documentation evidence required by qualification."""
+
+    def page(self, url: str) -> str: ...
 
 
 class MonitorGitHub(Protocol):
@@ -94,6 +102,15 @@ class GitHubClient:
         result = self.get_json(f"/repos/{owner}/{repository}/commits/{branch}")
         if not isinstance(result, dict) or not isinstance(result.get("sha"), str):
             raise EvidenceError("GitHub commit response has no SHA")
+        return result["sha"]
+
+    def tag_commit(self, owner: str, repository: str, tag: str) -> str | None:
+        """Return the commit SHA resolved by a tag, or None when the tag is absent."""
+        result = self.get_optional_json(f"/repos/{owner}/{repository}/commits/{tag}")
+        if result is None:
+            return None
+        if not isinstance(result, dict) or not isinstance(result.get("sha"), str):
+            raise EvidenceError("GitHub tag commit response has no SHA")
         return result["sha"]
 
     def content(self, owner: str, repository: str, path: str) -> str | None:
@@ -185,4 +202,35 @@ class PyPIClient:
         result = response.json()
         if not isinstance(result, dict) or not isinstance(result.get("info"), dict):
             raise EvidenceError(f"PyPI {distribution} response has no info object")
-        return result["info"]
+        release_files = result.get("urls", [])
+        if not isinstance(release_files, list):
+            raise EvidenceError(f"PyPI {distribution} response has no release file list")
+        info = dict(result["info"])
+        info["_release_files"] = release_files
+        return info
+
+
+class DocumentationClient:
+    """Minimal read client for deployed documentation evidence."""
+
+    def __init__(self, transport: httpx.BaseTransport | None = None):
+        self._client = httpx.Client(
+            headers={"User-Agent": "ml4t-ecosystem-audit"},
+            timeout=30.0,
+            follow_redirects=True,
+            transport=transport,
+        )
+
+    def close(self) -> None:
+        """Close the underlying HTTP client."""
+        self._client.close()
+
+    def page(self, url: str) -> str:
+        """Return a deployed documentation page."""
+        response = self._client.get(url)
+        if response.status_code >= 400:
+            raise EvidenceError(f"Documentation {url} returned {response.status_code}")
+        content_type = response.headers.get("content-type", "")
+        if "text/html" not in content_type:
+            raise EvidenceError(f"Documentation {url} did not return HTML")
+        return response.text

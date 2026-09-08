@@ -60,8 +60,10 @@ def test_collect_command(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Non
 
     monkeypatch.setattr("ml4t_ecosystem.cli.GitHubClient", Client)
     monkeypatch.setattr("ml4t_ecosystem.cli.PyPIClient", Client)
+    monkeypatch.setattr("ml4t_ecosystem.cli.DocumentationClient", Client)
     monkeypatch.setattr(
-        "ml4t_ecosystem.cli.audit_all", lambda config, github, pypi: [sample_report(passed=False)]
+        "ml4t_ecosystem.cli.audit_all",
+        lambda config, github, pypi, documentation: [sample_report(passed=False)],
     )
 
     assert main(["collect", "--output", str(tmp_path)]) == 1

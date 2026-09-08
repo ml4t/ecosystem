@@ -34,6 +34,7 @@ def test_load_repository_config() -> None:
         "release.yml",
     )
     assert config.policy.documentation_repository == "ml4t/website"
+    assert config.policy.homepage_url == "https://www.ml4trading.io/"
     assert config.library("data").prerelease_exception == "python-315-polars"
     assert config.library("diagnostic").prerelease_exception == "python-315-scipy"
     assert config.library("backtest").prerelease_exception is None
@@ -78,6 +79,7 @@ def test_unknown_library_raises() -> None:
         ('required_keywords = ["finance", "finance"]', "duplicates"),
         ("minimum_keywords = 4", "library-specific keywords"),
         ('documentation_repository = ""', "documentation_repository"),
+        ('required_workflow_files = ["../ci.yml"]', "required_workflow_files"),
     ],
 )
 def test_invalid_config_rejected(tmp_path: Path, replacement: str, message: str) -> None:
@@ -101,6 +103,9 @@ def test_invalid_config_rejected(tmp_path: Path, replacement: str, message: str)
         ),
         "minimum_keywords = 4": "minimum_keywords = 5",
         'documentation_repository = ""': 'documentation_repository = "ml4t/website"',
+        'required_workflow_files = ["../ci.yml"]': (
+            'required_workflow_files = ["ci.yml", "ecosystem.yml", "docs.yml", "release.yml"]'
+        ),
     }
     path = tmp_path / "invalid.toml"
     path.write_text(content.replace(originals[replacement], replacement), encoding="utf-8")

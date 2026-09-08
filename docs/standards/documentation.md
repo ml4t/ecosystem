@@ -24,7 +24,7 @@ must identify the same library. An audit passes only when all of the following a
 - the latest PyPI metadata matches the source and built wheel for description, people, license,
   Python requirement, classifiers, keywords, and project URLs.
 
-Public metadata and prose must not contain configured placeholder identities, fabricated support
+Public metadata and prose must not contain placeholder identities, fabricated support
 addresses, template project names, or references to organizations that do not own the library.
 Historical names belong only in migration notes when a reader needs them.
 
@@ -81,6 +81,11 @@ and full commit in the rendered site, and transfers an immutable artifact to the
 repository. The website deploys that artifact under the library's route without rebuilding it. The
 deployment job validates required credentials before changing external state and is protected from
 untrusted pull-request code.
+
+Every deployed page provides the release identity as HTML metadata using `ml4t-library`,
+`ml4t-version`, and `ml4t-commit` names. The values are the inventory key, public package version,
+and full 40-character release commit. This metadata is part of the publication contract and lets the
+ecosystem distinguish a current route from a successful response serving stale content.
 
 Production website changes require the separate approval applicable to `ml4t/website`. After
 deployment, an automated check fetches the canonical route and verifies the expected library,
