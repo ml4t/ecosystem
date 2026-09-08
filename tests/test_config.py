@@ -38,6 +38,7 @@ def test_load_repository_config() -> None:
     assert config.library("data").prerelease_exception == "python-315-polars"
     assert config.library("diagnostic").prerelease_exception == "python-315-scipy"
     assert config.library("backtest").prerelease_exception is None
+    assert config.library("specs").development_workspace is None
 
     exception = config.exception("python-315-polars")
     assert exception.libraries == ("data", "engineer")

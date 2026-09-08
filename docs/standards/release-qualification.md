@@ -62,18 +62,20 @@ Deprecated public identifiers are allowed only when the library inventory names 
 the release provides a tested replacement path, a runtime deprecation warning, and migration
 documentation. No new example or primary documentation may recommend a deprecated identifier.
 
-## Agent instructions
+## Agent orientation
 
-Every release repository and development sidecar has a root `AGENTS.md` as its canonical agent
-orientation. The root file stays below 200 lines and contains only information an agent cannot infer
-reliably from the repository: authoritative setup and quality commands, non-default style rules,
-repository etiquette, architecture decisions, environment constraints, and non-obvious failure
-modes. It must not contain volatile file counts, status snapshots, detailed API documentation,
-tutorials, or a file-by-file map. Nested `AGENTS.md` files are justified only by rules that differ
-within their directory and do not repeat the root.
+Every public release repository has a root `AGENTS.md` for an external agent trying to understand
+the library from a source checkout. It states the library's responsibility, identifies the source
+tree and major subsystems, names supported public imports or workflows, points to deeper guides when
+they exist, and gives the authoritative quality commands. The workspace audit checks for substantive
+sections, the configured import package, source-tree navigation, and an executable import or quality
+command. A placeholder file, tool-mechanism explanation, or import of private workspace state fails.
 
-The root `CLAUDE.md` contains exactly `@AGENTS.md` followed by a newline. This keeps one source of
-truth while making the same repository instructions available to Claude and Codex.
+The public root file stays below 200 lines and contains no internal work management, volatile file or
+test counts, status snapshots, detailed API documentation, or tutorials. Nested `AGENTS.md` files are
+justified when they provide subsystem orientation or rules that differ within their directory and do
+not repeat the root. Public repositories do not track `CLAUDE.md`, `.claude/`, `.codex/`, or
+`.workspace/`; those are local agent plumbing rather than library orientation.
 
 An instruction audit reports obsolete, duplicated, missing, or misplaced content and presents the
 exact proposed edits. Editing an `AGENTS.md` or `CLAUDE.md` requires the user's explicit approval of
@@ -82,9 +84,9 @@ other repositories' instruction changes.
 
 ## Development sidecars
 
-Each library has one private, independent `ml4t-{library}-dev` Git repository next to its public
-release checkout. The sidecar contains agent instructions, research, issue drafts, and local work
-state. It must have:
+Each library may name one private, independent `ml4t-{library}-dev` Git repository next to its public
+release checkout. A configured sidecar contains agent instructions, research, issue drafts, and
+local work state. It must have:
 
 - a configured `origin` whose repository visibility has been verified as private;
 - a clean worktree synchronized with its upstream before handoff;
@@ -102,6 +104,11 @@ Run `uv run ml4t-ecosystem audit-workspaces` from the ecosystem checkout to repo
 instruction imports, origin configuration, cleanliness, and synchronization. The report records
 paths and results only, never private file contents. Repository visibility is verified separately
 with authenticated GitHub metadata because a local remote URL does not prove visibility.
+
+An omitted `development_workspace` means the library is managed directly from the ecosystem and
+release checkouts. The audit records that no sidecar is required and does not synthesize one. Specs
+uses this exception because its runtime-neutral contract work is small and already writable from the
+other library development sandboxes.
 
 The library's default branch must pass the current ecosystem qualification before a tag can publish.
 A local library check cannot substitute for a failed shared check.

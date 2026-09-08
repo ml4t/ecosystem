@@ -143,7 +143,7 @@ def load_config(path: Path) -> EcosystemConfig:
                 import_package=_required_str(raw_library, "import_package"),
                 docs_url=_required_str(raw_library, "docs_url"),
                 local_checkout=_required_str(raw_library, "local_checkout"),
-                development_workspace=_required_str(raw_library, "development_workspace"),
+                development_workspace=_optional_str(raw_library, "development_workspace"),
                 prerelease_exception=_optional_str(raw_library, "prerelease_exception"),
                 deprecated_identifiers=_optional_string_tuple(
                     raw_library, "deprecated_identifiers"

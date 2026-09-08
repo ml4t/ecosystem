@@ -6,6 +6,7 @@ import subprocess
 from collections.abc import Sequence
 from pathlib import Path
 
+from ml4t_ecosystem.agent_orientation import orientation_issues
 from ml4t_ecosystem.models import CheckResult, EcosystemConfig, Library, WorkspaceReport
 
 CLAUDE_IMPORT = "@AGENTS.md\n"
@@ -46,7 +47,6 @@ def _has_exact_claude_import(path: Path) -> bool:
 def audit_workspace(root: Path, library: Library) -> WorkspaceReport:
     """Audit one local release checkout and its private development sidecar."""
     release = root / library.local_checkout
-    sidecar = root / library.development_workspace
     report = WorkspaceReport(library=library, root=str(root))
 
     report.checks.append(
@@ -58,18 +58,31 @@ def audit_workspace(root: Path, library: Library) -> WorkspaceReport:
     )
     report.checks.append(
         _result(
-            "release.agents",
-            (release / "AGENTS.md").is_file(),
-            "Release checkout has a root AGENTS.md",
+            "release.agent-orientation",
+            not (
+                agent_issues := orientation_issues(
+                    _read_text(release / "AGENTS.md"), library.import_package
+                )
+            ),
+            (
+                "Release checkout AGENTS.md provides public orientation"
+                if not agent_issues
+                else "Release checkout AGENTS.md is incomplete: " + "; ".join(agent_issues)
+            ),
         )
     )
-    report.checks.append(
-        _result(
-            "release.claude-import",
-            _has_exact_claude_import(release / "CLAUDE.md"),
-            "Release checkout CLAUDE.md contains only @AGENTS.md",
+
+    if library.development_workspace is None:
+        report.checks.append(
+            _result(
+                "sidecar.not-required",
+                True,
+                "Library inventory does not require a development sidecar",
+            )
         )
-    )
+        return report
+
+    sidecar = root / library.development_workspace
 
     sidecar_exists = sidecar.is_dir()
     report.checks.append(
@@ -139,6 +152,13 @@ def audit_workspace(root: Path, library: Library) -> WorkspaceReport:
         )
     )
     return report
+
+
+def _read_text(path: Path) -> str:
+    try:
+        return path.read_text(encoding="utf-8")
+    except OSError:
+        return ""
 
 
 def audit_workspaces(root: Path, config: EcosystemConfig) -> list[WorkspaceReport]:

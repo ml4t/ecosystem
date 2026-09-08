@@ -13,6 +13,7 @@ from typing import Any
 from packaging.specifiers import InvalidSpecifier, SpecifierSet
 from packaging.version import InvalidVersion, Version
 
+from ml4t_ecosystem.agent_orientation import orientation_issues
 from ml4t_ecosystem.clients import (
     AuditGitHub,
     DocumentationEvidence,
@@ -26,7 +27,6 @@ REQUIRED_FILES = (
     "README.md",
     "SECURITY.md",
     "AGENTS.md",
-    "CLAUDE.md",
     ".github/ISSUE_TEMPLATE/bug.yml",
     ".github/ISSUE_TEMPLATE/feature.yml",
     ".github/ISSUE_TEMPLATE/documentation.yml",
@@ -638,13 +638,19 @@ def _check_repository(
     _check_source_metadata(report, config, library, repository.contents, pypi_info)
     _check_readme(report, config, library, repository.contents["README.md"] or "")
 
-    claude = repository.contents["CLAUDE.md"]
+    agent_issues = orientation_issues(
+        repository.contents["AGENTS.md"] or "", library.import_package
+    )
     report.checks.append(
         _result(
-            "repository.claude-import",
-            claude == "@AGENTS.md\n",
-            "CLAUDE.md contains only the canonical AGENTS.md import",
-            f"{repository_url}/blob/main/CLAUDE.md",
+            "repository.agent-orientation",
+            not agent_issues,
+            (
+                "AGENTS.md provides public repository orientation"
+                if not agent_issues
+                else "AGENTS.md is incomplete: " + "; ".join(agent_issues)
+            ),
+            f"{repository_url}/blob/main/AGENTS.md",
         )
     )
 

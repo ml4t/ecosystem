@@ -21,7 +21,7 @@ class Library:
     import_package: str
     docs_url: str
     local_checkout: str
-    development_workspace: str
+    development_workspace: str | None
     prerelease_exception: str | None = None
     deprecated_identifiers: tuple[str, ...] = ()
 

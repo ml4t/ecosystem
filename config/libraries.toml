@@ -103,7 +103,6 @@ distribution = "ml4t-specs"
 import_package = "ml4t.specs"
 docs_url = "https://www.ml4trading.io/docs/specs/"
 local_checkout = "ml4t-specs"
-development_workspace = "ml4t-specs-dev"
 
 [[libraries]]
 key = "live"

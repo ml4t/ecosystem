@@ -185,8 +185,20 @@ class FakeGitHub:
                 f"[Releases]({urls['Changelog']})\n"
                 "[License](LICENSE)\n\nDevelopment: ruff, ty, pytest.\n"
             )
-        if path == "CLAUDE.md":
-            return "@AGENTS.md\n"
+        if path == "AGENTS.md":
+            return (
+                f"# ml4t-{repository}\n\n{DESCRIPTION}.\n\n"
+                "## Structure\n\n"
+                f"The `src/ml4t/{repository}/` tree contains the public package and its internal "
+                "implementation. Tests live in `tests/`, documentation in `docs/`, and examples "
+                "in `examples/`. Follow nested agent guides where a subsystem has additional "
+                "constraints. Keep public behavior compatible and use documented package "
+                "exports.\n\n"
+                "## Public entry point\n\n"
+                f"```python\nfrom ml4t.{repository} import PublicType\n```\n\n"
+                "Run `uv run pytest`, `uv run ruff check .`, and `uv run ty check` after changes. "
+                "Use synthetic fixtures instead of credentials or external services.\n"
+            )
         return "present\n" if path in REQUIRED_FILES else None
 
     def labels(self, owner: str, repository: str) -> set[str]:
@@ -321,8 +333,8 @@ def test_audit_rejects_metadata_readme_and_instruction_drift() -> None:
                 )
             if path == "README.md":
                 return "# Placeholder\n"
-            if path == "CLAUDE.md":
-                return "Duplicated instructions\n"
+            if path == "AGENTS.md":
+                return "Placeholder\n"
             return super().content(owner, repository, path)
 
     ecosystem = config()
@@ -344,7 +356,7 @@ def test_audit_rejects_metadata_readme_and_instruction_drift() -> None:
         "source.description",
         "readme.installation",
         "readme.quick-start",
-        "repository.claude-import",
+        "repository.agent-orientation",
     }.issubset(failed)
 
 
