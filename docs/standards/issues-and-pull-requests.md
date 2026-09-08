@@ -3,6 +3,11 @@
 GitHub is the authoritative work record after an internal request is accepted. A local Markdown file
 may be a draft but cannot be the only record for accepted work.
 
+Each private development sidecar keeps unaccepted drafts under `issues/`. Once work is accepted,
+create or update the issue in the owning public library repository and link subsequent pull requests
+there. The ecosystem repository holds only cross-library standards, qualification, or coordination
+issues. It does not duplicate an owning library's implementation issue.
+
 ## Intake
 
 All libraries provide compatible forms for bugs, features, and documentation problems. Intake

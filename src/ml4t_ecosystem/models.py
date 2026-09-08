@@ -140,3 +140,26 @@ class LibraryReport:
             "passed": self.passed,
             "checks": [check.to_dict() for check in self.checks],
         }
+
+
+@dataclass
+class WorkspaceReport:
+    """Local release-checkout and development-sidecar compliance results."""
+
+    library: Library
+    root: str
+    checks: list[CheckResult] = field(default_factory=list)
+
+    @property
+    def passed(self) -> bool:
+        """Return whether all local workspace checks passed."""
+        return bool(self.checks) and all(check.status == "pass" for check in self.checks)
+
+    def to_dict(self) -> dict[str, object]:
+        """Return a JSON-compatible representation without sidecar file contents."""
+        return {
+            "library": self.library.key,
+            "root": self.root,
+            "passed": self.passed,
+            "checks": [check.to_dict() for check in self.checks],
+        }

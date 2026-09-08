@@ -17,6 +17,7 @@ from ml4t_ecosystem.labels import load_labels, sync_labels
 from ml4t_ecosystem.monitor import monitor_all
 from ml4t_ecosystem.status import write_current_status
 from ml4t_ecosystem.templates import sync_templates
+from ml4t_ecosystem.workspaces import audit_workspaces
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -33,6 +34,12 @@ def _parser() -> argparse.ArgumentParser:
     collect = subparsers.add_parser("collect", help="collect PyPI and GitHub qualification status")
     collect.add_argument("--output", type=Path, default=ROOT / "status")
     collect.add_argument("--allow-failures", action="store_true")
+
+    workspaces = subparsers.add_parser(
+        "audit-workspaces", help="check local release checkouts and development sidecars"
+    )
+    workspaces.add_argument("--root", type=Path, default=ROOT)
+    workspaces.add_argument("--output", type=Path)
 
     monitor = subparsers.add_parser("monitor", help="check issue and pull-request response targets")
     monitor.add_argument("--output", type=Path)
@@ -91,6 +98,25 @@ def _monitor(args: argparse.Namespace) -> int:
     return 1 if findings else 0
 
 
+def _audit_workspaces(args: argparse.Namespace) -> int:
+    config = load_config(args.config)
+    reports = audit_workspaces(args.root, config)
+    payload = (
+        json.dumps(
+            {"schema_version": 1, "reports": [report.to_dict() for report in reports]},
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n"
+    )
+    if args.output:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(payload, encoding="utf-8")
+    else:
+        print(payload, end="")
+    return 0 if all(report.passed for report in reports) else 1
+
+
 def _snapshot(args: argparse.Namespace) -> int:
     current = args.status_dir / "current.json"
     if not current.is_file():
@@ -123,6 +149,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0
     if args.command == "collect":
         return _collect(args)
+    if args.command == "audit-workspaces":
+        return _audit_workspaces(args)
     if args.command == "monitor":
         return _monitor(args)
     if args.command == "snapshot":
