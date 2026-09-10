@@ -265,6 +265,88 @@ def test_audit_library_passes_complete_evidence() -> None:
     assert all(check.evidence for check in report.checks)
 
 
+def test_audit_accepts_pypi_rfc_822_identity_fields() -> None:
+    class Pep621PyPI(FakePyPI):
+        def package(self, distribution: str) -> dict[str, Any]:
+            result = super().package(distribution)
+            result.update(
+                author=None,
+                author_email="Stefan Jansen <stefan@applied-ai.com>",
+                maintainer=None,
+                maintainer_email="Stefan Jansen <pm@ml4trading.io>",
+            )
+            return result
+
+    ecosystem = config()
+    report = audit_library(
+        ecosystem,
+        ecosystem.library("data"),
+        FakeGitHub(),
+        Pep621PyPI(),
+        FakeDocumentation(),
+    )
+
+    check = next(check for check in report.checks if check.code == "pypi.identity")
+    assert check.status == "pass"
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("author_email", "Other Person <stefan@applied-ai.com>"),
+        ("maintainer_email", "Stefan Jansen <other@example.com>"),
+    ],
+)
+def test_audit_rejects_incorrect_pypi_rfc_822_identity(field: str, value: str) -> None:
+    class IncorrectIdentityPyPI(FakePyPI):
+        def package(self, distribution: str) -> dict[str, Any]:
+            result = super().package(distribution)
+            result.update(author=None, maintainer=None)
+            result[field] = value
+            return result
+
+    ecosystem = config()
+    report = audit_library(
+        ecosystem,
+        ecosystem.library("data"),
+        FakeGitHub(),
+        IncorrectIdentityPyPI(),
+        FakeDocumentation(),
+    )
+
+    check = next(check for check in report.checks if check.code == "pypi.identity")
+    assert check.status == "fail"
+
+
+def test_audit_accepts_equivalent_reordered_python_specifiers() -> None:
+    class BoundedPythonGitHub(FakeGitHub):
+        def content(self, owner: str, repository: str, path: str) -> str | None:
+            content = super().content(owner, repository, path)
+            if path == "pyproject.toml" and content is not None:
+                return content.replace(
+                    'requires-python = ">=3.12"', 'requires-python = ">=3.12,<3.15"'
+                )
+            return content
+
+    class ReorderedPythonPyPI(FakePyPI):
+        def package(self, distribution: str) -> dict[str, Any]:
+            result = super().package(distribution)
+            result["requires_python"] = "<3.15,>=3.12"
+            return result
+
+    ecosystem = config()
+    report = audit_library(
+        ecosystem,
+        ecosystem.library("data"),
+        BoundedPythonGitHub(),
+        ReorderedPythonPyPI(),
+        FakeDocumentation(),
+    )
+
+    check = next(check for check in report.checks if check.code == "metadata.source-pypi")
+    assert check.status == "pass"
+
+
 def test_audit_library_fails_beta_upper_bound_and_missing_repository_files() -> None:
     ecosystem = config()
     report = audit_library(

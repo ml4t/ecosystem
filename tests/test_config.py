@@ -44,7 +44,9 @@ def test_load_repository_config() -> None:
     assert exception.libraries == ("data", "engineer")
     assert exception.is_active(date(2026, 8, 11))
     assert exception.covers_version("0.1.2")
-    assert not exception.covers_version("0.1.4")
+    assert exception.covers_version("0.1.4")
+    assert exception.covers_version("0.1.5")
+    assert not exception.covers_version("0.1.6")
 
     diagnostic_exception = config.exception("python-315-scipy")
     assert diagnostic_exception.libraries == ("diagnostic",)
@@ -166,7 +168,7 @@ def test_invalid_exception_config_rejected(tmp_path: Path, replacement: str, mes
         'libraries = ["unknown"]': 'libraries = ["data", "engineer"]',
         'prerelease_exception = "unknown"': 'prerelease_exception = "python-315-polars"',
         'expires_on = "2026-09-30"': "expires_on = 2026-09-30",
-        'affected_versions = "invalid"': 'affected_versions = ">=0.1.2,<0.1.4"',
+        'affected_versions = "invalid"': 'affected_versions = ">=0.1.2,<0.1.6"',
         'criterion = "other"': 'criterion = "python-3.15-prerelease"',
     }
     path = tmp_path / "invalid-exception.toml"

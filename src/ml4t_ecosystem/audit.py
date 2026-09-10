@@ -7,6 +7,7 @@ import tomllib
 from contextlib import suppress
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from email.utils import parseaddr
 from html.parser import HTMLParser
 from typing import Any
 
@@ -142,6 +143,29 @@ def _person_matches(value: object, name: str, email: str) -> bool:
     )
 
 
+def _pypi_person_matches(
+    name_value: object,
+    email_value: object,
+    expected_name: str,
+    expected_email: str,
+) -> bool:
+    if name_value == expected_name and email_value == expected_email:
+        return True
+    if name_value not in (None, "", expected_name) or not isinstance(email_value, str):
+        return False
+    parsed_name, parsed_email = parseaddr(email_value)
+    return parsed_name == expected_name and parsed_email == expected_email
+
+
+def _specifier_sets_match(left: object, right: object) -> bool:
+    if not isinstance(left, str) or not isinstance(right, str):
+        return False
+    try:
+        return SpecifierSet(left) == SpecifierSet(right)
+    except InvalidSpecifier:
+        return False
+
+
 def _description_passes(description: object, config: EcosystemConfig) -> bool:
     return (
         isinstance(description, str)
@@ -234,11 +258,16 @@ def _check_pypi(
         )
     )
 
-    identity_matches = (
-        info.get("author") == config.policy.author_name
-        and info.get("author_email") == config.policy.author_email
-        and info.get("maintainer") == config.policy.maintainer_name
-        and info.get("maintainer_email") == config.policy.maintainer_email
+    identity_matches = _pypi_person_matches(
+        info.get("author"),
+        info.get("author_email"),
+        config.policy.author_name,
+        config.policy.author_email,
+    ) and _pypi_person_matches(
+        info.get("maintainer"),
+        info.get("maintainer_email"),
+        config.policy.maintainer_name,
+        config.policy.maintainer_email,
     )
     report.checks.append(
         _result(
@@ -458,7 +487,9 @@ def _check_source_metadata(
     else:
         fields_match = (
             description == pypi_info.get("summary")
-            and project.get("requires-python") == pypi_info.get("requires_python")
+            and _specifier_sets_match(
+                project.get("requires-python"), pypi_info.get("requires_python")
+            )
             and keyword_values == _keywords(pypi_info.get("keywords"))
             and classifier_values == set(pypi_info.get("classifiers", []))
             and project.get("urls") == pypi_info.get("project_urls")
