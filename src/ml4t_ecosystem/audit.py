@@ -40,7 +40,11 @@ REQUIRED_FILES = (
     "mkdocs.yml",
     "pyproject.toml",
 )
-OPTIONAL_FILES = (".github/workflows/compatibility.yml",)
+OPTIONAL_FILES = (
+    ".github/workflows/compatibility.yml",
+    ".github/workflows/stable-qualification.yml",
+    "scripts/qualification/run_stable_gate.py",
+)
 WORKFLOW_PREFIX = ".github/workflows/"
 REQUIRED_LABELS = {
     "type: bug",
@@ -761,9 +765,13 @@ def _check_repository(
     docs_workflow = repository.contents[".github/workflows/docs.yml"] or ""
     release_workflow = repository.contents[".github/workflows/release.yml"] or ""
     compatibility_workflow = repository.contents.get(".github/workflows/compatibility.yml") or ""
+    stable_workflow = repository.contents.get(".github/workflows/stable-qualification.yml") or ""
+    stable_runner = repository.contents.get("scripts/qualification/run_stable_gate.py") or ""
     workflows = [ci_workflow, ecosystem_workflow, docs_workflow, release_workflow]
     if compatibility_workflow:
         workflows.append(compatibility_workflow)
+    if stable_workflow:
+        workflows.append(stable_workflow)
     report.checks.append(
         _result(
             "workflow.immutable-actions",
@@ -796,10 +804,26 @@ def _check_repository(
     ci_gate_source = f"{ci_workflow}\n{docs_workflow}"
     if "uses: ./.github/workflows/compatibility.yml" in ci_workflow:
         ci_gate_source = f"{ci_gate_source}\n{compatibility_workflow}"
+    direct_ci_gates = all(term in ci_gate_source for term in ci_terms)
+    stable_stage_terms = (
+        'Stage("ruff-format"',
+        'Stage("ruff"',
+        'Stage("types"',
+        'Stage("deterministic-tests-and-branch-coverage"',
+        'Stage("documentation"',
+        'Stage("build"',
+    )
+    delegated_stable_gates = (
+        "pull_request:" in ci_workflow
+        and "branches: [main]" in ci_workflow
+        and "uses: ./.github/workflows/stable-qualification.yml" in ci_workflow
+        and "scripts/qualification/run_stable_gate.py" in stable_workflow
+        and all(term in stable_runner for term in stable_stage_terms)
+    )
     report.checks.append(
         _result(
             "workflow.ci-gates",
-            all(term in ci_gate_source for term in ci_terms),
+            direct_ci_gates or delegated_stable_gates,
             "CI runs the common pull-request and main quality gates",
             f"{repository_url}/blob/main/.github/workflows/ci.yml",
         )
