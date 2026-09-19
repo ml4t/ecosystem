@@ -30,6 +30,22 @@ Workflows cancel superseded branch runs without cancelling a release or producti
 deployment. Required checks retain stable names so branch protection cannot silently stop enforcing
 them. A green default branch is necessary but does not replace qualification of the release commit.
 
+## Repository settings
+
+Every stable library protects `main` with strict required status checks, linear history,
+conversation resolution, and administrator enforcement. Force pushes and deletion of `main` are
+disabled. Applying this baseline preserves the repository's complete required-check list, branch
+restrictions, and any existing pull-request review rules. The shared baseline does not require a
+human approval.
+
+Repositories allow squash and rebase merges and disable merge commits. GitHub deletes a
+pull-request branch after merge. GitHub Actions may use any action or reusable workflow, but the
+repository requires every non-local reference to use a full commit SHA.
+
+Dependabot alerts and security updates, secret scanning, and secret-scanning push protection are
+enabled. Release-environment branch policies and reviewer requirements remain library-specific and
+are not changed as part of repository-settings maintenance.
+
 ## Commit-bound release process
 
 A release workflow accepts an explicit version and candidate commit, then verifies that the commit
