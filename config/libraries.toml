@@ -37,7 +37,7 @@ homepage_url = "https://www.ml4trading.io/"
 id = "python-315-polars"
 criterion = "python-3.15-prerelease"
 libraries = ["data", "engineer"]
-affected_versions = ">=0.1.2,<0.1.6"
+affected_versions = ">=0.1.2,<0.1.8"
 rationale = "Polars 1.43.2 fails required expression and datetime operations on CPython 3.15.0rc1."
 evidence = [
     "https://github.com/pola-rs/polars/issues/28347",
@@ -53,7 +53,7 @@ issue = "https://github.com/ml4t/ecosystem/issues/2"
 id = "python-315-scipy"
 criterion = "python-3.15-prerelease"
 libraries = ["diagnostic"]
-affected_versions = ">=0.1.2,<0.1.5"
+affected_versions = ">=0.1.2,<0.1.7"
 rationale = "The published dependency set lacks required CPython 3.15 wheels for PyArrow 25.0.1 and pydantic-core 2.46.5."
 evidence = [
     "https://github.com/ml4t/diagnostic/issues/45",
