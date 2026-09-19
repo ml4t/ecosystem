@@ -42,7 +42,7 @@ def test_validate_exception_accepts_matching_repository() -> None:
         (
             "data",
             "ml4t/data",
-            "0.1.8",
+            "0.1.9.dev1",
             date(2026, 8, 11),
             "does not cover version",
         ),
