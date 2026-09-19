@@ -668,9 +668,9 @@ def test_audit_accepts_script_backed_stable_qualification() -> None:
                         'Stage("ruff-format", ())',
                         'Stage("ruff", ())',
                         'Stage("types", ())',
-                        'Stage("deterministic-tests-and-branch-coverage", ())',
-                        'Stage("documentation", ())',
-                        'Stage("build", ())',
+                        'Stage(\n    "deterministic-tests-and-branch-coverage",\n    (),\n)',
+                        'Stage(\n    "documentation",\n    (),\n)',
+                        'Stage(\n    "build",\n    (),\n)',
                     )
                 )
             return super().content(owner, repository, path)

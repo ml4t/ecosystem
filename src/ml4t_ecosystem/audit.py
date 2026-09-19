@@ -805,20 +805,23 @@ def _check_repository(
     if "uses: ./.github/workflows/compatibility.yml" in ci_workflow:
         ci_gate_source = f"{ci_gate_source}\n{compatibility_workflow}"
     direct_ci_gates = all(term in ci_gate_source for term in ci_terms)
-    stable_stage_terms = (
-        'Stage("ruff-format"',
-        'Stage("ruff"',
-        'Stage("types"',
-        'Stage("deterministic-tests-and-branch-coverage"',
-        'Stage("documentation"',
-        'Stage("build"',
+    stable_stage_names = (
+        "ruff-format",
+        "ruff",
+        "types",
+        "deterministic-tests-and-branch-coverage",
+        "documentation",
+        "build",
     )
     delegated_stable_gates = (
         "pull_request:" in ci_workflow
         and "branches: [main]" in ci_workflow
         and "uses: ./.github/workflows/stable-qualification.yml" in ci_workflow
         and "scripts/qualification/run_stable_gate.py" in stable_workflow
-        and all(term in stable_runner for term in stable_stage_terms)
+        and all(
+            re.search(rf'Stage\(\s*"{re.escape(stage)}"', stable_runner)
+            for stage in stable_stage_names
+        )
     )
     report.checks.append(
         _result(
