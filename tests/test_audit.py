@@ -643,6 +643,53 @@ def test_audit_accepts_docs_gate_and_verified_release_manifest() -> None:
     assert statuses["release.artifact-manifest"] == "pass"
 
 
+def test_audit_accepts_script_backed_stable_qualification() -> None:
+    class StableQualificationGitHub(FakeGitHub):
+        def content(self, owner: str, repository: str, path: str) -> str | None:
+            if path == ".github/workflows/ci.yml":
+                return (
+                    "on:\n  pull_request:\n    branches: [main]\n"
+                    "  push:\n    branches: [main]\n"
+                    "permissions: {}\n"
+                    "jobs:\n  qualification:\n"
+                    "    permissions:\n      contents: read\n"
+                    "    uses: ./.github/workflows/stable-qualification.yml\n"
+                )
+            if path == ".github/workflows/stable-qualification.yml":
+                return (
+                    "permissions: {}\n"
+                    "jobs:\n  qualify:\n    permissions:\n      contents: read\n"
+                    f"    - uses: actions/checkout@{SHA}\n"
+                    "    - run: uv run python scripts/qualification/run_stable_gate.py\n"
+                )
+            if path == "scripts/qualification/run_stable_gate.py":
+                return "\n".join(
+                    (
+                        'Stage("ruff-format", ())',
+                        'Stage("ruff", ())',
+                        'Stage("types", ())',
+                        'Stage("deterministic-tests-and-branch-coverage", ())',
+                        'Stage("documentation", ())',
+                        'Stage("build", ())',
+                    )
+                )
+            return super().content(owner, repository, path)
+
+    ecosystem = config()
+    report = audit_library(
+        ecosystem,
+        ecosystem.library("data"),
+        StableQualificationGitHub(),
+        FakePyPI(),
+        FakeDocumentation(),
+    )
+
+    statuses = {check.code: check.status for check in report.checks}
+    assert statuses["workflow.immutable-actions"] == "pass"
+    assert statuses["workflow.minimum-permissions"] == "pass"
+    assert statuses["workflow.ci-gates"] == "pass"
+
+
 def test_audit_rejects_stale_documentation_identity() -> None:
     ecosystem = config()
     report = audit_library(
