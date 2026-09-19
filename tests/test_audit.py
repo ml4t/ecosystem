@@ -564,6 +564,53 @@ def test_audit_requires_isolated_tests_and_artifact_identity() -> None:
     assert "pypi.artifact-digests" in failed
 
 
+def test_audit_accepts_delegated_ci_and_verified_candidate_manifest() -> None:
+    class DelegatedWorkflowGitHub(FakeGitHub):
+        def content(self, owner: str, repository: str, path: str) -> str | None:
+            if path == ".github/workflows/ci.yml":
+                return (
+                    "on:\n  pull_request:\n  push:\n    branches: [main]\n"
+                    "permissions:\n  contents: read\n"
+                    "jobs:\n  compatibility:\n"
+                    "    uses: ./.github/workflows/compatibility.yml\n"
+                )
+            if path == ".github/workflows/compatibility.yml":
+                return (
+                    "permissions:\n  contents: read\n"
+                    f"- uses: actions/checkout@{SHA}\n"
+                    "run: uv run ruff check .\n"
+                    "run: uv run ruff format --check .\n"
+                    "run: uv run ty check\n"
+                    "run: uv run pytest\n"
+                    "run: uv build\n"
+                    "run: uv run mkdocs build --strict\n"
+                )
+            if path == ".github/workflows/release.yml":
+                return (
+                    "permissions:\n  contents: read\n  id-token: write\n"
+                    f"uses: ml4t/ecosystem/.github/workflows/qualify-library.yml@{SHA}\n"
+                    f"- uses: pypa/gh-action-pypi-publish@{SHA}\n"
+                    "run: uv run python scripts/release_candidate.py create candidate "
+                    "--commit-sha ${{ needs.preflight.outputs.commit }}\n"
+                    "run: uv run python scripts/release_candidate.py verify candidate\n"
+                    "path: candidate/candidate.json\n"
+                )
+            return super().content(owner, repository, path)
+
+    ecosystem = config()
+    report = audit_library(
+        ecosystem,
+        ecosystem.library("data"),
+        DelegatedWorkflowGitHub(),
+        FakePyPI(),
+        FakeDocumentation(),
+    )
+
+    statuses = {check.code: check.status for check in report.checks}
+    assert statuses["workflow.ci-gates"] == "pass"
+    assert statuses["release.artifact-manifest"] == "pass"
+
+
 def test_audit_rejects_stale_documentation_identity() -> None:
     ecosystem = config()
     report = audit_library(

@@ -40,6 +40,7 @@ REQUIRED_FILES = (
     "mkdocs.yml",
     "pyproject.toml",
 )
+OPTIONAL_FILES = (".github/workflows/compatibility.yml",)
 WORKFLOW_PREFIX = ".github/workflows/"
 REQUIRED_LABELS = {
     "type: bug",
@@ -372,7 +373,10 @@ def _collect_repository(
         *base_files,
         *(f"{WORKFLOW_PREFIX}{name}" for name in required_workflow_files),
     )
-    contents = {path: github.content(owner, library.repository, path) for path in required_files}
+    contents = {
+        path: github.content(owner, library.repository, path)
+        for path in (*required_files, *OPTIONAL_FILES)
+    }
     return RepositoryEvidence(
         metadata=metadata,
         source_commit=source_commit,
@@ -596,7 +600,7 @@ def _check_repository(
         )
     )
 
-    for path in repository.contents:
+    for path in (path for path in repository.contents if path not in OPTIONAL_FILES):
         content = repository.contents[path]
         code_path = path.replace("/", ".").lstrip(".")
         report.checks.append(
@@ -756,7 +760,10 @@ def _check_repository(
     ci_workflow = repository.contents[".github/workflows/ci.yml"] or ""
     docs_workflow = repository.contents[".github/workflows/docs.yml"] or ""
     release_workflow = repository.contents[".github/workflows/release.yml"] or ""
+    compatibility_workflow = repository.contents.get(".github/workflows/compatibility.yml") or ""
     workflows = [ci_workflow, ecosystem_workflow, docs_workflow, release_workflow]
+    if compatibility_workflow:
+        workflows.append(compatibility_workflow)
     report.checks.append(
         _result(
             "workflow.immutable-actions",
@@ -786,10 +793,13 @@ def _check_repository(
         "uv build",
         "mkdocs build --strict",
     )
+    ci_gate_source = ci_workflow
+    if "uses: ./.github/workflows/compatibility.yml" in ci_workflow:
+        ci_gate_source = f"{ci_workflow}\n{compatibility_workflow}"
     report.checks.append(
         _result(
             "workflow.ci-gates",
-            all(term in ci_workflow for term in ci_terms),
+            all(term in ci_gate_source for term in ci_terms),
             "CI runs the common pull-request and main quality gates",
             f"{repository_url}/blob/main/.github/workflows/ci.yml",
         )
@@ -825,11 +835,23 @@ def _check_repository(
             f"{repository_url}/blob/main/.github/workflows/release.yml",
         )
     )
-    manifest_terms = ("sha256", "manifest", "github.sha")
+    release_workflow_lower = release_workflow.lower()
+    inline_manifest = all(
+        term in release_workflow_lower for term in ("sha256", "manifest", "github.sha")
+    )
+    verified_candidate_manifest = all(
+        term in release_workflow_lower
+        for term in (
+            "release_candidate.py create",
+            "release_candidate.py verify",
+            "candidate/candidate.json",
+            "--commit-sha",
+        )
+    )
     report.checks.append(
         _result(
             "release.artifact-manifest",
-            all(term in release_workflow.lower() for term in manifest_terms),
+            inline_manifest or verified_candidate_manifest,
             "Release binds artifact digests and manifest to the candidate commit",
             f"{repository_url}/blob/main/.github/workflows/release.yml",
         )
