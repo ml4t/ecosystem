@@ -46,14 +46,18 @@ def test_load_repository_config() -> None:
     assert exception.covers_version("0.1.2")
     assert exception.covers_version("0.1.4")
     assert exception.covers_version("0.1.5")
-    assert not exception.covers_version("0.1.6")
+    assert exception.covers_version("0.1.6")
+    assert exception.covers_version("0.1.7")
+    assert not exception.covers_version("0.1.8")
 
     diagnostic_exception = config.exception("python-315-scipy")
     assert diagnostic_exception.libraries == ("diagnostic",)
     assert diagnostic_exception.covers_version("0.1.2")
     assert diagnostic_exception.covers_version("0.1.3")
     assert diagnostic_exception.covers_version("0.1.4")
-    assert not diagnostic_exception.covers_version("0.1.5")
+    assert diagnostic_exception.covers_version("0.1.5")
+    assert diagnostic_exception.covers_version("0.1.6")
+    assert not diagnostic_exception.covers_version("0.1.7")
 
 
 def test_unknown_library_raises() -> None:
@@ -168,7 +172,7 @@ def test_invalid_exception_config_rejected(tmp_path: Path, replacement: str, mes
         'libraries = ["unknown"]': 'libraries = ["data", "engineer"]',
         'prerelease_exception = "unknown"': 'prerelease_exception = "python-315-polars"',
         'expires_on = "2026-09-30"': "expires_on = 2026-09-30",
-        'affected_versions = "invalid"': 'affected_versions = ">=0.1.2,<0.1.6"',
+        'affected_versions = "invalid"': 'affected_versions = ">=0.1.2,<0.1.8"',
         'criterion = "other"': 'criterion = "python-3.15-prerelease"',
     }
     path = tmp_path / "invalid-exception.toml"
