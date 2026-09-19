@@ -611,6 +611,38 @@ def test_audit_accepts_delegated_ci_and_verified_candidate_manifest() -> None:
     assert statuses["release.artifact-manifest"] == "pass"
 
 
+def test_audit_accepts_docs_gate_and_verified_release_manifest() -> None:
+    class SplitWorkflowGitHub(FakeGitHub):
+        def content(self, owner: str, repository: str, path: str) -> str | None:
+            content = super().content(owner, repository, path)
+            if path == ".github/workflows/ci.yml" and content is not None:
+                return content.replace("run: uv run mkdocs build --strict\n", "")
+            if path == ".github/workflows/release.yml":
+                return (
+                    "permissions:\n  contents: read\n  id-token: write\n"
+                    f"uses: ml4t/ecosystem/.github/workflows/qualify-library.yml@{SHA}\n"
+                    f"- uses: pypa/gh-action-pypi-publish@{SHA}\n"
+                    "run: python scripts/write_release_manifest.py --commit ${{ github.sha }} "
+                    "--output release-manifest.json\n"
+                    "run: python scripts/verify_published_release.py "
+                    "--manifest release-manifest.json\n"
+                )
+            return content
+
+    ecosystem = config()
+    report = audit_library(
+        ecosystem,
+        ecosystem.library("data"),
+        SplitWorkflowGitHub(),
+        FakePyPI(),
+        FakeDocumentation(),
+    )
+
+    statuses = {check.code: check.status for check in report.checks}
+    assert statuses["workflow.ci-gates"] == "pass"
+    assert statuses["release.artifact-manifest"] == "pass"
+
+
 def test_audit_rejects_stale_documentation_identity() -> None:
     ecosystem = config()
     report = audit_library(
