@@ -26,3 +26,14 @@ def test_shared_qualification_requires_prerelease_or_validated_exception() -> No
     assert "scripts/validate_exception.py" in workflow
     assert "--repository ${{ github.repository }}" in workflow
     assert "--package-root candidate" in workflow
+
+
+def test_shared_qualification_uses_current_policy_snapshot() -> None:
+    workflow = (
+        Path(__file__).parents[1] / ".github" / "workflows" / "qualify-library.yml"
+    ).read_text(encoding="utf-8")
+
+    policy_snapshot = "37682e4c2d4783cb326000ff1ed023124f7d8200"
+    refs = re.findall(r"^\s+ref: ([0-9a-f]{40})$", workflow, flags=re.MULTILINE)
+
+    assert refs == [policy_snapshot, policy_snapshot, policy_snapshot]
