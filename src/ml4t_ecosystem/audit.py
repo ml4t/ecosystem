@@ -793,9 +793,9 @@ def _check_repository(
         "uv build",
         "mkdocs build --strict",
     )
-    ci_gate_source = ci_workflow
+    ci_gate_source = f"{ci_workflow}\n{docs_workflow}"
     if "uses: ./.github/workflows/compatibility.yml" in ci_workflow:
-        ci_gate_source = f"{ci_workflow}\n{compatibility_workflow}"
+        ci_gate_source = f"{ci_gate_source}\n{compatibility_workflow}"
     report.checks.append(
         _result(
             "workflow.ci-gates",
@@ -848,10 +848,19 @@ def _check_repository(
             "--commit-sha",
         )
     )
+    verified_release_manifest = all(
+        term in release_workflow_lower
+        for term in (
+            "write_release_manifest.py",
+            "verify_published_release.py",
+            "release-manifest.json",
+            "--commit",
+        )
+    )
     report.checks.append(
         _result(
             "release.artifact-manifest",
-            inline_manifest or verified_candidate_manifest,
+            inline_manifest or verified_candidate_manifest or verified_release_manifest,
             "Release binds artifact digests and manifest to the candidate commit",
             f"{repository_url}/blob/main/.github/workflows/release.yml",
         )
