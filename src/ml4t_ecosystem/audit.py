@@ -331,6 +331,7 @@ def _check_pypi(
         exception = config.exception(library.prerelease_exception)
         exception_evidence = exception.issue
         if not exception.is_active(observed_at.date()):
+            assert exception.expires_on is not None
             exception_message = (
                 f"Exception {exception.id} expired on {exception.expires_on.isoformat()}"
             )
@@ -340,10 +341,18 @@ def _check_pypi(
             )
         else:
             prerelease_allowed = True
-            exception_message = (
-                f"Requires-Python {requires_text!r} is covered by active exception "
-                f"{exception.id} through {exception.expires_on.isoformat()}"
-            )
+            if exception.review_triggers:
+                triggers = ", ".join(exception.review_triggers)
+                exception_message = (
+                    f"Requires-Python {requires_text!r} is covered by prerelease wait "
+                    f"{exception.id}; review triggers: {triggers}"
+                )
+            else:
+                assert exception.expires_on is not None
+                exception_message = (
+                    f"Requires-Python {requires_text!r} is covered by active exception "
+                    f"{exception.id} through {exception.expires_on.isoformat()}"
+                )
     report.checks.append(
         _result(
             "pypi.prerelease-install",

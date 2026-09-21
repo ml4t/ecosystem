@@ -22,7 +22,9 @@ This repository does not contain library source code and is not a runtime depend
 ML4T supports every stable CPython release from Python 3.12 through the latest stable version on
 Linux, macOS, and Windows. Each supported combination must pass installation, import, tests, type
 checking, and package build checks before release. The next CPython prerelease becomes a blocking
-compatibility target after beta 1 without being advertised as stable.
+compatibility target after beta 1 unless a library's required dependencies cannot yet pass it. A
+dependency-blocked library keeps a truthful Python upper bound and runs a visible non-blocking
+canary until its documented review triggers occur.
 
 See [Compatibility](docs/standards/compatibility.md) and
 [Release qualification](docs/standards/release-qualification.md) for the normative criteria.

@@ -37,33 +37,34 @@ homepage_url = "https://www.ml4trading.io/"
 id = "python-315-polars"
 criterion = "python-3.15-prerelease"
 libraries = ["data", "engineer"]
-affected_versions = ">=0.1.2,<=0.1.8"
-rationale = "Polars 1.43.2 fails required expression and datetime operations on CPython 3.15.0rc1."
+affected_versions = ">=0.1.2,<0.2"
+rationale = "Polars 1.44.2 fails required series construction on CPython 3.15.0rc1."
 evidence = [
+    "https://github.com/ml4t/data/issues/37",
     "https://github.com/pola-rs/polars/issues/28347",
     "https://github.com/pola-rs/polars/pull/28750",
+    "https://pypi.org/project/polars/1.44.2/#files",
 ]
-user_impact = "These distributions cannot be installed on Python 3.15 while the exception is active."
+user_impact = "These distributions cannot be installed on Python 3.15 while the prerelease wait applies."
 mitigation = "Use Python 3.12 through 3.14 until a compatible Polars release is qualified."
 approver = "Stefan Jansen"
-expires_on = 2026-09-30
+review_triggers = ["python-3.15-final", "polars-release-after-1.44.2"]
 issue = "https://github.com/ml4t/ecosystem/issues/2"
 
 [[exceptions]]
 id = "python-315-scipy"
 criterion = "python-3.15-prerelease"
 libraries = ["diagnostic"]
-affected_versions = ">=0.1.2,<0.1.7"
-rationale = "The published dependency set lacks required CPython 3.15 wheels for PyArrow 25.0.1 and pydantic-core 2.46.5."
+affected_versions = ">=0.1.2,<0.2"
+rationale = "PyArrow 25.0.1 does not publish CPython 3.15 wheels, so the complete Diagnostic dependency set cannot install on CPython 3.15."
 evidence = [
     "https://github.com/ml4t/diagnostic/issues/45",
     "https://pypi.org/project/pyarrow/25.0.1/#files",
-    "https://pypi.org/project/pydantic-core/2.46.5/#files",
 ]
-user_impact = "The distribution cannot be installed on Python 3.15 while the exception is active."
+user_impact = "The distribution cannot be installed on Python 3.15 while the prerelease wait applies."
 mitigation = "Use Python 3.12 through 3.14 until the complete dependency set is qualified on Python 3.15."
 approver = "Stefan Jansen"
-expires_on = 2026-09-30
+review_triggers = ["python-3.15-final", "pyarrow-26"]
 issue = "https://github.com/ml4t/ecosystem/issues/2"
 
 [[libraries]]

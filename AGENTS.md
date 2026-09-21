@@ -133,12 +133,15 @@ See `docs/standards/documentation.md` for the deployment contract and required c
 
 ## Compatibility and Release Qualification
 
-Before 2026-10-01, each library must pass installation, import, tests, type checking, and package
-builds on Python 3.12 through 3.14 on Linux, macOS, and Windows. Python 3.15 prereleases must pass
-core installation and non-hardware-dependent tests on all three systems.
+Each library must pass installation, import, tests, type checking, and package builds on Python 3.12
+through 3.14 on Linux, macOS, and Windows. Python 3.15 prereleases must pass core installation and
+non-hardware-dependent tests on all three systems unless a dependency-blocked library has a
+configured prerelease wait. A waiting library keeps a truthful upper bound and runs a visible
+non-blocking canary at least monthly.
 
 An ecosystem failure blocks the affected release unless an approved exception records its scope,
-rationale, approver, and expiration date. Hardware-specific features use separate matrices.
+rationale, approver, and an expiration date or objective review triggers. Hardware-specific features
+use separate matrices.
 
 See `docs/standards/compatibility.md` and `docs/standards/release-qualification.md`.
 

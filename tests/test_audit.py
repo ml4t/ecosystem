@@ -381,7 +381,7 @@ def test_audit_accepts_active_version_scoped_prerelease_exception() -> None:
     assert "python-315-polars" in check.message
 
 
-def test_audit_rejects_expired_prerelease_exception() -> None:
+def test_audit_accepts_prerelease_wait_after_former_expiration() -> None:
     ecosystem = config()
     report = audit_library(
         ecosystem,
@@ -393,8 +393,8 @@ def test_audit_rejects_expired_prerelease_exception() -> None:
     )
 
     check = next(check for check in report.checks if check.code == "pypi.prerelease-install")
-    assert check.status == "fail"
-    assert "expired" in check.message
+    assert check.status == "pass"
+    assert "review triggers" in check.message
 
 
 def test_audit_rejects_metadata_readme_and_instruction_drift() -> None:

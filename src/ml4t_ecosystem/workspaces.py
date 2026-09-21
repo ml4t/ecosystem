@@ -6,7 +6,7 @@ import subprocess
 from collections.abc import Sequence
 from pathlib import Path
 
-from ml4t_ecosystem.agent_orientation import orientation_issues
+from ml4t_ecosystem.agent_orientation import nested_orientation_issues, orientation_issues
 from ml4t_ecosystem.models import CheckResult, EcosystemConfig, Library, WorkspaceReport
 
 CLAUDE_IMPORT = "@AGENTS.md\n"
@@ -68,6 +68,18 @@ def audit_workspace(root: Path, library: Library) -> WorkspaceReport:
                 "Release checkout AGENTS.md provides public orientation"
                 if not agent_issues
                 else "Release checkout AGENTS.md is incomplete: " + "; ".join(agent_issues)
+            ),
+        )
+    )
+    nested_issues = nested_orientation_issues(release)
+    report.checks.append(
+        _result(
+            "release.nested-agent-orientation",
+            not nested_issues,
+            (
+                "Tracked nested AGENTS.md files provide stable subsystem orientation"
+                if not nested_issues
+                else "Nested AGENTS.md findings: " + "; ".join(nested_issues)
             ),
         )
     )

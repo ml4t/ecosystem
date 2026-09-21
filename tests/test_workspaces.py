@@ -128,6 +128,7 @@ guidance when a compatible default cannot preserve existing payloads.
     assert [check.code for check in report.checks] == [
         "release.exists",
         "release.agent-orientation",
+        "release.nested-agent-orientation",
         "sidecar.not-required",
     ]
 

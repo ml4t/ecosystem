@@ -82,9 +82,14 @@ def main() -> None:
         package_version=package_version,
         on_date=datetime.now(UTC).date(),
     )
+    if exception.review_triggers:
+        scope = "review triggers " + ", ".join(exception.review_triggers)
+    else:
+        assert exception.expires_on is not None
+        scope = f"expiration {exception.expires_on.isoformat()}"
     print(
-        f"Approved exception {exception.id} covers {library.key} {package_version} through "
-        f"{exception.expires_on.isoformat()}: {exception.issue}"
+        f"Approved exception {exception.id} covers {library.key} {package_version}; "
+        f"{scope}: {exception.issue}"
     )
 
 

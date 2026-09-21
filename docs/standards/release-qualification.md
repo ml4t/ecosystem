@@ -80,23 +80,10 @@ documentation. No new example or primary documentation may recommend a deprecate
 
 ## Agent orientation
 
-Every public release repository has a root `AGENTS.md` for an external agent trying to understand
-the library from a source checkout. It states the library's responsibility, identifies the source
-tree and major subsystems, names supported public imports or workflows, points to deeper guides when
-they exist, and gives the authoritative quality commands. The workspace audit checks for substantive
-sections, the configured import package, source-tree navigation, and an executable import or quality
-command. A placeholder file, tool-mechanism explanation, or import of private workspace state fails.
-
-The public root file stays below 200 lines and contains no internal work management, volatile file or
-test counts, status snapshots, detailed API documentation, or tutorials. Nested `AGENTS.md` files are
-justified when they provide subsystem orientation or rules that differ within their directory and do
-not repeat the root. Public repositories do not track `CLAUDE.md`, `.claude/`, `.codex/`, or
-`.workspace/`; those are local agent plumbing rather than library orientation.
-
-An instruction audit reports obsolete, duplicated, missing, or misplaced content and presents the
-exact proposed edits. Editing an `AGENTS.md` or `CLAUDE.md` requires the user's explicit approval of
-that reported scope. Approval for a library's instruction files does not authorize user-level or
-other repositories' instruction changes.
+Every public release repository follows the root and nested `AGENTS.md` requirements in
+[Agent guides](agent-guides.md). The workspace audit discovers tracked guides and reports structural
+or placement failures. Each library's qualification also compares guide content with its current
+package, documentation, and workflows.
 
 ## Development sidecars
 
@@ -129,14 +116,15 @@ other library development sandboxes.
 The library's default branch must pass the current ecosystem qualification before a tag can publish.
 A local library check cannot substitute for a failed shared check.
 
-An exception is valid only when it records:
+A release exception or prerelease wait is valid only when it records:
 
 - the exact criterion and affected library versions;
 - evidence explaining why the exception is necessary;
 - user impact and mitigation;
 - the approving maintainer;
-- an expiration date; and
+- an expiration date or objective review triggers; and
 - the issue that removes the exception.
 
-Expired or incomplete exceptions fail qualification. Validation occurs before publication, so a
-rejected release does not create a tag, artifact, GitHub release, or PyPI upload.
+Expired or incomplete records fail qualification. A review trigger requires fresh evidence but does
+not by itself fail a stable release. Validation occurs before publication, so a rejected release
+does not create a tag, artifact, GitHub release, or PyPI upload.
