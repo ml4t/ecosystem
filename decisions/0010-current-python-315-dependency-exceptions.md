@@ -1,6 +1,6 @@
 # Decision 0010: Current Python 3.15 dependency exceptions
 
-**Status**: Accepted
+**Status**: Superseded by Decision 0013
 **Date**: 2026-09-19
 **Approver**: Stefan Jansen
 **Expires**: 2026-09-30

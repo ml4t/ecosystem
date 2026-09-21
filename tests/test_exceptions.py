@@ -42,11 +42,10 @@ def test_validate_exception_accepts_matching_repository() -> None:
         (
             "data",
             "ml4t/data",
-            "0.1.9.dev1",
+            "0.2.0.dev1",
             date(2026, 8, 11),
             "does not cover version",
         ),
-        ("data", "ml4t/data", "0.1.2", date(2026, 10, 1), "expired"),
     ],
 )
 def test_validate_exception_rejects_invalid_scope(

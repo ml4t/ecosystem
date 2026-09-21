@@ -12,21 +12,29 @@ Each supported Python and operating-system combination must pass:
 5. `ty` type checking; and
 6. source distribution and wheel builds with metadata validation.
 
-The next CPython prerelease enters CI after beta 1. Before final release, core installation and the
-non-hardware-dependent tests must pass on Linux, macOS, and Windows. Prerelease support is tested but
-not advertised as stable.
+The next CPython prerelease enters CI after beta 1. Libraries whose complete dependency sets install
+on the prerelease run blocking core installation and non-hardware-dependent tests on Linux, macOS,
+and Windows. Prerelease support is tested but not advertised as stable.
 
-When that CPython release becomes final, it joins the supported matrix and failures block releases.
-Dropping an older Python version requires an ecosystem decision and a documented deprecation period.
+A dependency-blocked library keeps a truthful `Requires-Python` upper bound and runs a visible
+non-blocking canary at least monthly. Its configured prerelease wait records the affected release
+line, evidence, user impact, mitigation, owner issue, and objective review triggers. A trigger starts
+a new review; it does not claim compatibility or block an otherwise qualified stable release.
 
-For releases before 2026-10-01, the stable matrix is Python 3.12 through 3.14 and the blocking
-prerelease target is Python 3.15. A package metadata upper bound that prevents installation on the
-prerelease target fails this standard.
+When that CPython release becomes final, it joins the supported matrix for libraries without an
+approved wait. A waiting library reviews fresh qualification evidence when final ships and records
+whether the wait can end. Dropping an older Python version requires an ecosystem decision and a
+documented deprecation period.
+
+For releases before Python 3.15 is qualified across a library's complete dependency set, the stable
+matrix is Python 3.12 through 3.14. Python 3.15 remains a blocking target for libraries without a
+configured prerelease wait.
 
 A library may temporarily retain an upper bound only through a machine-readable exception in
-`config/libraries.toml`. The exception replaces the prerelease jobs with an explicit validation job;
-it does not remove the stable operating-system matrix. The validation fails when the exception is
-missing, applied to another repository, outside its version scope, or expired.
+`config/libraries.toml`. The `prerelease_exception` name remains in the configuration and reusable
+workflow for compatibility. For a trigger-based wait, the validation fails when the record is
+missing, applied to another repository, outside its release-line scope, or lacks review triggers.
+The wait never removes the stable operating-system matrix.
 
 Hardware-specific capabilities such as CUDA require a separate matrix. Passing the general matrix
 does not establish hardware support.

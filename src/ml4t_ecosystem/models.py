@@ -28,7 +28,7 @@ class Library:
 
 @dataclass(frozen=True)
 class QualificationException:
-    """One approved, time-limited release qualification exception."""
+    """One approved release qualification exception or prerelease wait."""
 
     id: str
     criterion: str
@@ -39,12 +39,13 @@ class QualificationException:
     user_impact: str
     mitigation: str
     approver: str
-    expires_on: date
+    expires_on: date | None
     issue: str
+    review_triggers: tuple[str, ...] = ()
 
     def is_active(self, on_date: date) -> bool:
-        """Return whether the exception remains valid on a date."""
-        return on_date <= self.expires_on
+        """Return whether a date-bounded exception remains valid on a date."""
+        return self.expires_on is None or on_date <= self.expires_on
 
     def covers_version(self, version: str) -> bool:
         """Return whether a published version is inside the approved scope."""

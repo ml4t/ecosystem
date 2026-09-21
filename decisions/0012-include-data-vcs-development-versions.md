@@ -1,6 +1,6 @@
 # Decision 0012: Include Data VCS development versions in the active exception
 
-**Status**: Accepted
+**Status**: Superseded by Decision 0013
 **Date**: 2026-09-19
 **Approver**: Stefan Jansen
 **Expires**: 2026-09-30

@@ -16,7 +16,7 @@ def validate_exception(
     package_version: str,
     on_date: date,
 ) -> QualificationException:
-    """Validate an exception against its library, repository, version, and expiration."""
+    """Validate an exception against its library, repository, version, and date."""
     library = config.library(library_key)
     exception = config.exception(exception_id)
     if library.prerelease_exception != exception.id or library.key not in exception.libraries:
@@ -33,5 +33,6 @@ def validate_exception(
             f"approved scope is {exception.affected_versions}"
         )
     if not exception.is_active(on_date):
+        assert exception.expires_on is not None
         raise ValueError(f"exception {exception.id} expired on {exception.expires_on.isoformat()}")
     return exception

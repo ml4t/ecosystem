@@ -129,14 +129,15 @@ other library development sandboxes.
 The library's default branch must pass the current ecosystem qualification before a tag can publish.
 A local library check cannot substitute for a failed shared check.
 
-An exception is valid only when it records:
+A release exception or prerelease wait is valid only when it records:
 
 - the exact criterion and affected library versions;
 - evidence explaining why the exception is necessary;
 - user impact and mitigation;
 - the approving maintainer;
-- an expiration date; and
+- an expiration date or objective review triggers; and
 - the issue that removes the exception.
 
-Expired or incomplete exceptions fail qualification. Validation occurs before publication, so a
-rejected release does not create a tag, artifact, GitHub release, or PyPI upload.
+Expired or incomplete records fail qualification. A review trigger requires fresh evidence but does
+not by itself fail a stable release. Validation occurs before publication, so a rejected release
+does not create a tag, artifact, GitHub release, or PyPI upload.

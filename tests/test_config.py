@@ -42,7 +42,13 @@ def test_load_repository_config() -> None:
 
     exception = config.exception("python-315-polars")
     assert exception.libraries == ("data", "engineer")
+    assert exception.expires_on is None
+    assert exception.review_triggers == (
+        "python-3.15-final",
+        "polars-release-after-1.44.2",
+    )
     assert exception.is_active(date(2026, 8, 11))
+    assert exception.is_active(date(2026, 10, 1))
     assert exception.covers_version("0.1.2")
     assert exception.covers_version("0.1.4")
     assert exception.covers_version("0.1.5")
@@ -50,7 +56,8 @@ def test_load_repository_config() -> None:
     assert exception.covers_version("0.1.7")
     assert exception.covers_version("0.1.8.dev2+g9096f8941")
     assert exception.covers_version("0.1.8")
-    assert not exception.covers_version("0.1.9.dev1")
+    assert exception.covers_version("0.1.9.dev1")
+    assert not exception.covers_version("0.2.0.dev1")
 
     diagnostic_exception = config.exception("python-315-scipy")
     assert diagnostic_exception.libraries == ("diagnostic",)
@@ -59,7 +66,8 @@ def test_load_repository_config() -> None:
     assert diagnostic_exception.covers_version("0.1.4")
     assert diagnostic_exception.covers_version("0.1.5")
     assert diagnostic_exception.covers_version("0.1.6")
-    assert not diagnostic_exception.covers_version("0.1.7")
+    assert diagnostic_exception.covers_version("0.1.7")
+    assert not diagnostic_exception.covers_version("0.2.0")
 
 
 def test_unknown_library_raises() -> None:
@@ -162,7 +170,8 @@ def test_duplicate_and_incomplete_inventory_rejected(tmp_path: Path) -> None:
         ('id = "python-315-scipy"', "exception ids must be unique"),
         ('libraries = ["unknown"]', "unknown libraries"),
         ('prerelease_exception = "unknown"', "unknown prerelease exception"),
-        ('expires_on = "2026-09-30"', "expires_on must be a TOML date"),
+        ('review_triggers = [""]', "review_triggers"),
+        ("review_triggers = []", "expires_on or review_triggers"),
         ('affected_versions = "invalid"', "affected_versions"),
         ('criterion = "other"', "criterion"),
     ],
@@ -173,8 +182,13 @@ def test_invalid_exception_config_rejected(tmp_path: Path, replacement: str, mes
         'id = "python-315-scipy"': 'id = "python-315-polars"',
         'libraries = ["unknown"]': 'libraries = ["data", "engineer"]',
         'prerelease_exception = "unknown"': 'prerelease_exception = "python-315-polars"',
-        'expires_on = "2026-09-30"': "expires_on = 2026-09-30",
-        'affected_versions = "invalid"': 'affected_versions = ">=0.1.2,<=0.1.8"',
+        'review_triggers = [""]': (
+            'review_triggers = ["python-3.15-final", "polars-release-after-1.44.2"]'
+        ),
+        "review_triggers = []": (
+            'review_triggers = ["python-3.15-final", "polars-release-after-1.44.2"]'
+        ),
+        'affected_versions = "invalid"': 'affected_versions = ">=0.1.2,<0.2"',
         'criterion = "other"': 'criterion = "python-3.15-prerelease"',
     }
     path = tmp_path / "invalid-exception.toml"
@@ -182,6 +196,23 @@ def test_invalid_exception_config_rejected(tmp_path: Path, replacement: str, mes
 
     with pytest.raises(ValueError, match=message):
         load_config(path)
+
+
+def test_date_bounded_exception_remains_supported(tmp_path: Path) -> None:
+    content = Path("config/libraries.toml").read_text(encoding="utf-8")
+    content = content.replace(
+        'review_triggers = ["python-3.15-final", "polars-release-after-1.44.2"]',
+        "expires_on = 2026-09-30",
+        1,
+    )
+    path = tmp_path / "date-bounded.toml"
+    path.write_text(content, encoding="utf-8")
+
+    exception = load_config(path).exception("python-315-polars")
+
+    assert exception.review_triggers == ()
+    assert exception.is_active(date(2026, 9, 30))
+    assert not exception.is_active(date(2026, 10, 1))
 
 
 @pytest.mark.parametrize(

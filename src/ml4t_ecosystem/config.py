@@ -69,10 +69,12 @@ def _optional_str(mapping: dict[str, Any], key: str) -> str | None:
     return value
 
 
-def _required_date(mapping: dict[str, Any], key: str) -> date:
+def _optional_date(mapping: dict[str, Any], key: str) -> date | None:
     value = mapping.get(key)
+    if value is None:
+        return None
     if not isinstance(value, date):
-        raise ValueError(f"{key} must be a TOML date")
+        raise ValueError(f"{key} must be a TOML date when provided")
     return value
 
 
@@ -192,8 +194,9 @@ def load_config(path: Path) -> EcosystemConfig:
                 user_impact=_required_str(raw_exception, "user_impact"),
                 mitigation=_required_str(raw_exception, "mitigation"),
                 approver=_required_str(raw_exception, "approver"),
-                expires_on=_required_date(raw_exception, "expires_on"),
+                expires_on=_optional_date(raw_exception, "expires_on"),
                 issue=_required_str(raw_exception, "issue"),
+                review_triggers=_optional_string_tuple(raw_exception, "review_triggers"),
             )
         )
 
@@ -205,6 +208,8 @@ def load_config(path: Path) -> EcosystemConfig:
     for exception in exceptions:
         if exception.criterion != expected_criterion:
             raise ValueError(f"exception {exception.id} criterion must be {expected_criterion!r}")
+        if exception.expires_on is None and not exception.review_triggers:
+            raise ValueError(f"exception {exception.id} must define expires_on or review_triggers")
         unknown = sorted(set(exception.libraries) - known_keys)
         if unknown:
             raise ValueError(f"exception {exception.id} has unknown libraries: {unknown}")
