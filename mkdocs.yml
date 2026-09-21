@@ -24,6 +24,7 @@ nav:
       - Issues and pull requests: standards/issues-and-pull-requests.md
       - API compatibility: standards/api-compatibility.md
       - Dependencies and security: standards/dependencies-and-security.md
+      - Agent guides: standards/agent-guides.md
   - Decisions: decisions.md
   - Reviews: reviews.md
 
