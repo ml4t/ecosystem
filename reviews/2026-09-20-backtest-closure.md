@@ -16,6 +16,10 @@ The private sidecar is clean on `main` at `21dbaad`. Its local issue index now r
 current disposition. Private issues #14 and #16 were closed after verifying the associated book
 change and the published release history through 0.1.7.
 
+The timezone-alignment fix in current source changed installed behavior after 0.1.7. Release
+[v0.1.8](https://github.com/ml4t/backtest/releases/tag/v0.1.8) therefore publishes exact `main`
+commit `a32a20620b1a34cc5c8a657f358b4b145b1efa69` rather than leaving that fix unreleased.
+
 ## Verification
 
 - Ruff lint and formatting, ty, actionlint, strict MkDocs, package builds, and every pre-commit hook
@@ -25,3 +29,8 @@ change and the published release history through 0.1.7.
   Windows, plus its repository CI, before merge.
 - The ecosystem agent-guide audit passes for the root guide and all nested guides.
 - The built wheel installs and imports successfully in an isolated environment.
+- Release run
+  [35553684066](https://github.com/ml4t/backtest/actions/runs/35553684066) passed the complete
+  candidate, licensed-comparison, documentation, publication, and post-publication gates. PyPI,
+  the GitHub release, and the deployed documentation all report version 0.1.8 and the exact source
+  commit.
