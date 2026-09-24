@@ -49,7 +49,3 @@
 /status/current.json
 /status/current.md
 /status/monitor.json
-
-# Pre-existing local review notes. Migrate deliberately before tracking.
-/docs/2026-03-26-docs-prompts-coordination-note.md
-/docs/2026-03-26-docs-suite-audit.md
