@@ -57,7 +57,10 @@ def test_load_repository_config() -> None:
     assert exception.covers_version("0.1.8.dev2+g9096f8941")
     assert exception.covers_version("0.1.8")
     assert exception.covers_version("0.1.9.dev1")
-    assert not exception.covers_version("0.2.0.dev1")
+    assert exception.covers_version("0.2.0.dev1")
+    assert exception.covers_version("0.2.0")
+    assert exception.covers_version("0.2.1.dev1")
+    assert not exception.covers_version("0.3.0.dev1")
 
     diagnostic_exception = config.exception("python-315-scipy")
     assert diagnostic_exception.libraries == ("diagnostic",)

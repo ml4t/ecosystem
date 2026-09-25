@@ -15,7 +15,7 @@ def test_validate_exception_accepts_matching_repository() -> None:
         exception_id="python-315-polars",
         library_key="data",
         repository="ml4t/data",
-        package_version="0.1.2",
+        package_version="0.2.0",
         on_date=date(2026, 8, 11),
     )
 
@@ -42,7 +42,7 @@ def test_validate_exception_accepts_matching_repository() -> None:
         (
             "data",
             "ml4t/data",
-            "0.2.0.dev1",
+            "0.3.0.dev1",
             date(2026, 8, 11),
             "does not cover version",
         ),
