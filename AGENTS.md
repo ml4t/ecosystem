@@ -25,23 +25,45 @@ Every other library's sandbox config grants write access to
 `ml4t-specs-dev/`; if the volume of specs work ever justifies one, change this
 paragraph first.
 
+## Reloaded Maintenance
+
+The shared contributor policy also covers these independent repositories. Their own maintenance
+agents own queues, reproductions, reviews, fixes, CI and documentation. Support covers bug,
+security and compatibility fixes and preserves existing docs. Direct new features to current ML4T
+libraries. They retain native qualification and documentation workflows; the current-library matrix
+below does not automatically apply.
+
+| Public repository | Sibling release checkout | Private workspace | Migration partner |
+|---|---|---|---|
+| `stefan-jansen/zipline-reloaded` | `zipline-reloaded/` | `zipline-reloaded-dev/` | Backtest |
+| `stefan-jansen/pyfolio-reloaded` | `pyfolio-reloaded/` | `pyfolio-reloaded-dev/` | Diagnostic |
+| `stefan-jansen/alphalens-reloaded` | `alphalens-reloaded/` | `alphalens-reloaded-dev/` | Diagnostic |
+| `stefan-jansen/empyrical-reloaded` | `empyrical-reloaded/` | `empyrical-reloaded-dev/` | Diagnostic |
+
 ## Local Repository Model
 
-The directory containing this repository also contains independent Git repositories:
+The parent directory is a plain container, not a Git repository. Its children are independent
+checkouts:
 
+- `ml4t-ecosystem/` is this public standards and qualification repository.
+- `ml4t-dev/` is the private coordinator workspace for shared setup, routing and cross-library work.
 - `ml4t-{library}/` is the local checkout of the public release repository. Its default branch,
   tags, workflows, package metadata, and release history belong to that library.
 - `ml4t-{library}-dev/` is a private development workspace for agent instructions, work units,
   research, issue drafts, and transitions. It may direct changes into the sibling release checkout.
 - Additional directories with suffixes such as a feature name are temporary worktrees or historical
   workspaces. Inspect their Git metadata before using them.
-- The parent `ml4t/ecosystem` repository tracks only files allowed by its root `.gitignore`. Never
-  force-add a nested repository or development workspace.
+- Reloaded release checkouts and their private sidecars follow the table above.
+- Never add a sibling repository or private workspace to this repository.
+
+The coordinator owns shared policy and infrastructure. Individual library agents own their source
+work and maintenance queues. Specs remains managed without a dedicated sidecar. Migration partners
+provide expertise and measured evidence; they do not take ownership of the Reloaded queues.
 
 Before changing a library, read both this file and the target library or development workspace
 `AGENTS.md`. The more specific instructions apply within that repository.
 
-Each library's release checkout also carries `docs/book-guide/index.md`: the authoritative
+Each current library's release checkout also carries `docs/book-guide/index.md`: the authoritative
 chapter-to-API cross-reference (book notebook -> concept -> library API -> docs page). An agent
 mapping a book chapter to a library's surface should read that file first, not grep the seven repos.
 
@@ -54,32 +76,17 @@ Use these authorities in order:
 3. The library's root `AGENTS.md` for repository-specific commands and constraints.
 4. `docs/standards/` in this repository for requirements shared by all libraries.
 5. `status/` and `reviews/` for current and dated cross-library evidence.
-6. `.workspace/` for local agent state only. It is not public policy and is not tracked here (see "Local agent state").
+6. The private development sidecar for agent state. It is not public policy.
 
 Do not treat a stale local tag, feature branch, development-workspace issue draft, or copied status
 table as current release evidence.
 
 ## Local agent state
 
-Shared by Claude and Codex, and **untracked by design**: the root `.gitignore`
-ignores everything not explicitly allowed, so none of this is published.
-
-| Path | What |
-|---|---|
-| `.workspace/memory/MEMORY_INDEX.md` | Index of curated memory: `status`, `last_referenced`, `tokens`, `anchors` per file |
-| `.workspace/memory/*.md` | Curated memory, read on demand. Currently conventions, deployment, metrics, status |
-| `.workspace/PROJECT_MAP.md` | Ecosystem overview, package relationships, tool stack |
-| `.workspace/transitions/YYYY-MM-DD/HHMMSS.md` | Session progress, one file per event |
-| `.workspace/work/` | Active work units |
-
-Read a memory file when its topic is relevant; the index says what exists and
-whether it is current. This file does not `@`-include the index, unlike the
-per-library `AGENTS.md` files: the index is untracked here, so an include would
-dangle for anyone who clones the public repository.
-
-All of this moved out of `.claude/` on 2026-09-08. `.claude/` now holds only
-Claude-specific configuration, and transitions are written by the `transition`
-plugin's own hooks rather than a per-project one.
+Shared coordinator memory, active work, transitions and agent-specific configuration belong in
+the sibling private `ml4t-dev/` checkout. Library state belongs in its own sidecar. Curated memory
+is read on demand; each sidecar includes only its memory index. This public guide does not include
+private memory or depend on a private checkout being present for contributors.
 
 ## Standard Work Lifecycle
 
@@ -103,7 +110,9 @@ User-visible changes and defect fixes do.
 
 ## Issue and Pull-Request Monitoring
 
-The ecosystem monitor covers all open issues and pull requests in the seven repositories.
+The ecosystem qualification monitor covers the seven current repositories. Dedicated maintenance
+agents monitor the four Reloaded queues using their own repository identities and native checks.
+Both follow the shared contributor policy and prepare advisory recommendations for approval.
 
 - Classify each new item within one hour using the shared type, priority, status, affected-version,
   and compatibility-impact vocabulary.
@@ -122,6 +131,9 @@ See `docs/standards/issues-and-pull-requests.md` for the normative requirements.
 Each library owns its tutorials, how-to guides, reference pages, explanations, examples, and API
 documentation. The ecosystem repository owns the common process and index.
 
+The requirements below apply to current libraries. Reloaded libraries preserve their existing
+Sphinx documentation and deployment routes; changes to those are owned by their maintenance agent.
+
 - Use MkDocs with the shared ML4T theme and navigation conventions.
 - Run `uv run mkdocs build --strict` for every documentation change and release.
 - Publish each library under its assigned `https://ml4trading.io/docs/{library}/` route.
@@ -133,7 +145,7 @@ See `docs/standards/documentation.md` for the deployment contract and required c
 
 ## Compatibility and Release Qualification
 
-Each library must pass installation, import, tests, type checking, and package builds on Python 3.12
+Each current library must pass installation, import, tests, type checking, and package builds on Python 3.12
 through 3.14 on Linux, macOS, and Windows. Python 3.15 prereleases must pass core installation and
 non-hardware-dependent tests on all three systems unless a dependency-blocked library has a
 configured prerelease wait. A waiting library keeps a truthful upper bound and runs a visible
@@ -159,7 +171,7 @@ pre-commit run --all-files
 Install hooks once with `pre-commit install`. Commit at coherent passing checkpoints, without waiting
 to be asked.
 
-`ml4t/ecosystem` and the library repos it hosts are **public**, so a push here is a publication to
+`ml4t/ecosystem` and the separate library repos are **public**, so a push here is a publication to
 outside contributors and downstream users, not a backup. Confirm before pushing unless the active
 task already authorizes publication. This is the narrow exception to the standing "push private repos
 freely" rule in `~/.claude/CLAUDE.md`; it applies because these repos are public, not because pushing
