@@ -10,6 +10,11 @@ issues. It does not duplicate an owning library's implementation issue.
 
 ## Intake
 
+The [contribution policy](https://github.com/ml4t/ecosystem/blob/main/CONTRIBUTING.md) applies to
+the current ML4T and maintained Reloaded libraries. Each issue describes one problem or coherent
+change; unrelated problems require separate issues. Each PR addresses its owning issue. A bundle
+of unrelated fixes is not made focused by collecting them in one issue.
+
 All libraries provide compatible forms for bugs, features, and documentation problems. Intake
 records the affected version, environment, observed and expected behavior, reproduction evidence
 where applicable, compatibility impact, and acceptance criteria.
@@ -30,7 +35,18 @@ Library-specific labels may extend the vocabulary but may not redefine shared la
 Every non-automated user-visible change and defect fix has an associated issue. Its pull request uses
 a closing reference. Automated dependency updates and administrative metadata changes are exempt.
 External pull requests may use their own complete description as the issue record when the repository
-accepts and links it explicitly.
+explicitly accepts it during triage of an existing submission. This is an intake exception, not the
+default process for new submissions, and does not waive focused scope or verification.
 
-Automation may report, classify, and update work records with approved credentials. It never writes
-to library branches. Code and documentation changes use the owning repository's pull-request process.
+Bug fixes include executed evidence that the same regression fails on the relevant base and passes
+with the correction through a real public API or user workflow. Contributors disclose AI assistance
+and remain accountable for code and prose. Verified numerical defects are corrected; changes to
+intended conventions require agreement on expected behavior and compatibility impact in the owning
+issue. Preserving an existing output is not a reason to retain a verified defect.
+
+Shared maintenance automation prepares triage and review recommendations for maintainer approval.
+It records the revision inspected and distinguishes metadata inspection, diff inspection, and
+executed verification. Missing API or runner evidence is reported as missing evidence. Automated
+recommendations do not post comments or reviews, apply labels, approve runs, close items, merge,
+publish, or write to library branches. Code and documentation changes use the owning repository's
+pull-request process.
