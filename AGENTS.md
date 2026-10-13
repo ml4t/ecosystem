@@ -110,9 +110,7 @@ User-visible changes and defect fixes do.
 
 ## Issue and Pull-Request Monitoring
 
-The ecosystem qualification monitor covers the seven current repositories. Dedicated maintenance
-agents monitor the four Reloaded queues using their own repository identities and native checks.
-Both follow the shared contributor policy and prepare advisory recommendations for approval.
+The ecosystem monitor covers all open issues and pull requests in the seven repositories.
 
 - Classify each new item within one hour using the shared type, priority, status, affected-version,
   and compatibility-impact vocabulary.
