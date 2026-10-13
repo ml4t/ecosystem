@@ -103,7 +103,11 @@ User-visible changes and defect fixes do.
 
 ## Issue and Pull-Request Monitoring
 
-The ecosystem monitor covers all open issues and pull requests in the seven repositories.
+The shared queue monitor covers all eleven repositories in `config/maintained-repositories.toml`.
+It uses full owner/name identities, records actual observation times and PR revisions, and marks
+incomplete API evidence explicitly. Stable qualification remains limited to the seven current
+libraries in `config/libraries.toml`. Individual maintenance agents own review and executed
+verification under their repository's native checks. Recommendations require maintainer approval.
 
 - Classify each new item within one hour using the shared type, priority, status, affected-version,
   and compatibility-impact vocabulary.
