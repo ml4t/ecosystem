@@ -17,6 +17,21 @@ This repository does not contain library source code and is not a runtime depend
 [ecosystem documentation](https://ml4t.github.io/ecosystem/) or the tracked documents under
 `docs/standards/`, `status/`, `reviews/`, and `decisions/`.
 
+## Repository layout and maintenance
+
+Keep `ml4t-ecosystem/` beside the independent library checkouts in a plain parent directory.
+Private development workspaces are sibling repositories; they are not part of this public
+checkout. `audit-workspaces` uses that parent by default, while configuration, templates and
+public evidence remain in this repository. Use `--root` to audit another library directory.
+
+The shared [contribution policy](CONTRIBUTING.md) also covers Zipline Reloaded, Pyfolio Reloaded,
+Alphalens Reloaded and Empyrical Reloaded. Each retains its own repository, maintenance owner,
+native CI and documentation. Support covers bug, security and compatibility fixes and preserves
+docs. New features belong in current ML4T libraries. Backtest supplies Zipline migration guidance;
+Diagnostic supplies Pyfolio, Alphalens and Empyrical guidance. Migration claims require evidence
+for the specific workflow. Stable-release qualification below applies to the seven current
+libraries.
+
 ## Stable-release policy
 
 ML4T supports every stable CPython release from Python 3.12 through the latest stable version on

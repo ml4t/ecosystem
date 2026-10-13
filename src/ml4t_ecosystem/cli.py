@@ -38,7 +38,7 @@ def _parser() -> argparse.ArgumentParser:
     workspaces = subparsers.add_parser(
         "audit-workspaces", help="check local release checkouts and development sidecars"
     )
-    workspaces.add_argument("--root", type=Path, default=ROOT)
+    workspaces.add_argument("--root", type=Path, default=ROOT.parent)
     workspaces.add_argument("--output", type=Path)
 
     monitor = subparsers.add_parser("monitor", help="check issue and pull-request response targets")
