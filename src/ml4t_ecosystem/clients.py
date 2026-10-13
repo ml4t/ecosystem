@@ -50,6 +50,12 @@ class MonitorGitHub(Protocol):
     def pull_reviews(self, owner: str, repository: str, number: int) -> list[dict[str, Any]]: ...
 
 
+class QueueGitHub(MonitorGitHub, Protocol):
+    """Response monitoring plus the revisions required for owner review tasks."""
+
+    def pull_request(self, owner: str, repository: str, number: int) -> dict[str, Any]: ...
+
+
 class GitHubClient:
     """Minimal read client for GitHub repository evidence."""
 
@@ -150,33 +156,63 @@ class GitHubClient:
 
     def open_issues(self, owner: str, repository: str) -> list[dict[str, Any]]:
         """Return open issues and pull requests from the issues endpoint."""
-        result = self.get_json(
+        return self._pages(
             f"/repos/{owner}/{repository}/issues",
             params={"state": "open", "per_page": "100", "sort": "created"},
         )
-        if not isinstance(result, list):
-            raise EvidenceError("GitHub issues response was not a list")
-        return [item for item in result if isinstance(item, dict)]
 
     def issue_comments(self, owner: str, repository: str, number: int) -> list[dict[str, Any]]:
         """Return comments for an issue or pull request."""
-        result = self.get_json(
+        return self._pages(
             f"/repos/{owner}/{repository}/issues/{number}/comments",
             params={"per_page": "100"},
         )
-        if not isinstance(result, list):
-            raise EvidenceError("GitHub comments response was not a list")
-        return [item for item in result if isinstance(item, dict)]
 
     def pull_reviews(self, owner: str, repository: str, number: int) -> list[dict[str, Any]]:
         """Return reviews for a pull request."""
-        result = self.get_json(
+        return self._pages(
             f"/repos/{owner}/{repository}/pulls/{number}/reviews",
             params={"per_page": "100"},
         )
-        if not isinstance(result, list):
-            raise EvidenceError("GitHub pull reviews response was not a list")
-        return [item for item in result if isinstance(item, dict)]
+
+    def _pages(self, path: str, *, params: dict[str, str]) -> list[dict[str, Any]]:
+        url = str(self._client.base_url.join(path).copy_merge_params(params))
+        visited: set[str] = set()
+        items: list[dict[str, Any]] = []
+        while url:
+            target = httpx.URL(url)
+            if (target.scheme, target.host, target.port, target.path) != (
+                "https",
+                "api.github.com",
+                None,
+                path,
+            ) or url in visited:
+                raise EvidenceError(f"GitHub {path} returned an invalid pagination link")
+            visited.add(url)
+            try:
+                response = self._client.get(url)
+                response.raise_for_status()
+                page = response.json()
+            except (httpx.HTTPError, ValueError) as error:
+                raise EvidenceError(f"GitHub {path} page unavailable: {error}") from error
+            if not isinstance(page, list) or any(not isinstance(item, dict) for item in page):
+                raise EvidenceError(
+                    f"GitHub {path.rsplit('/', 1)[-1]} response was not a list of objects"
+                )
+            items.extend(page)
+            url = response.links.get("next", {}).get("url", "")
+        return items
+
+    def pull_request(self, owner: str, repository: str, number: int) -> dict[str, Any]:
+        """Return current pull-request revisions and material status."""
+        path = f"/repos/{owner}/{repository}/pulls/{number}"
+        try:
+            result = self.get_json(path)
+        except (httpx.HTTPError, ValueError) as error:
+            raise EvidenceError(f"GitHub {path} unavailable: {error}") from error
+        if not isinstance(result, dict):
+            raise EvidenceError(f"GitHub {path} response was not an object")
+        return result
 
 
 class PyPIClient:

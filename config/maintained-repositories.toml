@@ -1,0 +1,35 @@
+schema_version = 1
+
+[[repositories]]
+key = "data"
+repository = "ml4t/data"
+[[repositories]]
+key = "engineer"
+repository = "ml4t/engineer"
+[[repositories]]
+key = "backtest"
+repository = "ml4t/backtest"
+[[repositories]]
+key = "specs"
+repository = "ml4t/specs"
+[[repositories]]
+key = "live"
+repository = "ml4t/live"
+[[repositories]]
+key = "diagnostic"
+repository = "ml4t/diagnostic"
+[[repositories]]
+key = "models"
+repository = "ml4t/models"
+[[repositories]]
+key = "zipline-reloaded"
+repository = "stefan-jansen/zipline-reloaded"
+[[repositories]]
+key = "pyfolio-reloaded"
+repository = "stefan-jansen/pyfolio-reloaded"
+[[repositories]]
+key = "alphalens-reloaded"
+repository = "stefan-jansen/alphalens-reloaded"
+[[repositories]]
+key = "empyrical-reloaded"
+repository = "stefan-jansen/empyrical-reloaded"
