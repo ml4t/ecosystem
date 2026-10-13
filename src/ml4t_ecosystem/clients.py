@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import re
 from typing import Any, Protocol
 
 import httpx
@@ -179,14 +180,23 @@ class GitHubClient:
         url = str(self._client.base_url.join(path).copy_merge_params(params))
         visited: set[str] = set()
         items: list[dict[str, Any]] = []
+        resource = "/" + "/".join(path.split("/")[4:])
+        canonical_path: str | None = None
         while url:
             target = httpx.URL(url)
-            if (target.scheme, target.host, target.port, target.path) != (
-                "https",
-                "api.github.com",
-                None,
-                path,
-            ) or url in visited:
+            valid_path = target.path == path or target.path == canonical_path
+            if (
+                not valid_path
+                and canonical_path is None
+                and re.fullmatch(r"/repositories/[0-9]+" + re.escape(resource), target.path)
+            ):
+                canonical_path = target.path
+                valid_path = True
+            if (
+                (target.scheme, target.host, target.port) != ("https", "api.github.com", None)
+                or not valid_path
+                or url in visited
+            ):
                 raise EvidenceError(f"GitHub {path} returned an invalid pagination link")
             visited.add(url)
             try:

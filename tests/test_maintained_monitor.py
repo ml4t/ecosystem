@@ -26,7 +26,8 @@ def test_open_queue_does_not_drop_items_after_first_github_page() -> None:
         headers = {}
         if page == 1:
             headers["Link"] = (
-                '<https://api.github.com/repos/ml4t/data/issues?page=2&per_page=100>; rel="next"'
+                "<https://api.github.com/repositories/1089877520/issues"
+                '?page=2&per_page=100>; rel="next"'
             )
         return httpx.Response(200, json=pages[page - 1], headers=headers)
 
@@ -147,14 +148,16 @@ def test_partial_api_failure_never_becomes_a_clean_complete_queue(failure: str) 
 
 def test_second_page_failure_does_not_publish_first_page_as_complete() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
-        if request.url.path == "/repos/ml4t/data/issues":
+        if request.url.path in ("/repos/ml4t/data/issues", "/repositories/1089877520/issues"):
             if request.url.params.get("page") == "2":
                 return httpx.Response(502)
             return httpx.Response(
                 200,
                 json=CAPTURE["data"]["pages"][0],
                 headers={
-                    "Link": '<https://api.github.com/repos/ml4t/data/issues?page=2>; rel="next"'
+                    "Link": (
+                        '<https://api.github.com/repositories/1089877520/issues?page=2>; rel="next"'
+                    )
                 },
             )
         return replay(request)
@@ -170,14 +173,22 @@ def test_maintainer_response_on_later_page_is_not_reported_overdue(endpoint: str
         if request.url.path.endswith("/" + endpoint):
             if request.url.params.get("page") == "2":
                 return httpx.Response(200, json=[{"author_association": "OWNER"}])
+            resource = "/".join(request.url.path.split("/")[4:])
+            repository_id = 1089877520 if "/ml4t/data/" in request.url.path else 341662136
             return httpx.Response(
                 200,
                 json=[{"author_association": "NONE"}],
-                headers={"Link": f'<https://api.github.com{request.url.path}?page=2>; rel="next"'},
+                headers={
+                    "Link": (
+                        f"<https://api.github.com/repositories/{repository_id}/{resource}"
+                        '?page=2>; rel="next"'
+                    )
+                },
             )
         return replay(request)
 
     report = collect(handler)
+    assert report["complete"] is True
     pull_number = int(next(iter(CAPTURE["data"]["pulls"])))
     assert not any(
         f["library"] == "data"
@@ -227,6 +238,8 @@ def test_invalid_or_racing_github_record_remains_missing_evidence(defect: str) -
     "next_url",
     [
         "https://example.com/stolen",
+        "https://api.github.com/repositories/1089877520/pulls?page=2",
+        "https://api.github.com/repos/ml4t/engineer/issues?page=2",
         "https://api.github.com/repos/ml4t/data/issues?per_page=100&state=open&sort=created",
     ],
 )
