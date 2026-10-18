@@ -18,7 +18,8 @@ bug, security, and compatibility fixes; direct new feature requests to the curre
 
 ## Submit one focused pull request
 
-Each pull request addresses one issue and includes a closing reference, such as `Closes #123`.
+For external contributions, each pull request normally addresses one issue and includes a closing
+reference, such as `Closes #123`. Maintainer-directed batches follow the exception below.
 Related code, tests, and documentation can belong in the same PR. Keep unrelated fixes, refactors,
 and formatting changes separate. Automated dependency updates and administrative metadata changes
 do not require a separate issue.
@@ -36,6 +37,24 @@ Verified defects must be corrected, including defects that affect numerical resu
 change alters an intended definition, annualization, sign convention, or default, agree on the
 expected behavior in the owning issue and document its compatibility impact. Existing output alone
 is not evidence that the implementation is correct.
+
+## Maintainer-directed batches
+
+Our own fixes, including work delegated to agents, should use bounded, coherent PRs. A PR may
+close several related issues when they share a user workflow, subsystem repair or compatibility
+objective and can be reviewed and reverted together. Include implementation, regressions, docs
+and follow-up repairs in that PR. Keep individual defects and their evidence traceable through
+issue references and focused commits; do not create an issue or PR for each implementation step.
+
+Split unrelated changes, independent release or rollback decisions, separate ownership boundaries,
+and independently risky or breaking changes. Avoid both tiny fragments and batches whose scope
+cannot be reviewed clearly. A general maintenance label is not sufficient justification to combine
+work. Reuse existing submissions where coherent; consolidate owned branches only while preserving
+contributor attribution, recoverable history and other owners' active work.
+
+Run focused checks during iteration and batch related work before expensive CI. The complete final
+revision still needs substantive review and every applicable required check. Batching does not waive
+failing-base/passing-fix evidence, AI disclosure, compatibility review or current-revision qualification.
 
 ## AI assistance and accountability
 
