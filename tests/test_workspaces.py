@@ -3,7 +3,7 @@ from pathlib import Path
 
 from ml4t_ecosystem.config import load_config
 from ml4t_ecosystem.models import Library
-from ml4t_ecosystem.workspaces import CLAUDE_IMPORT, audit_workspace
+from ml4t_ecosystem.workspaces import audit_workspace
 
 
 def _git(path: Path, *arguments: str) -> None:
@@ -48,7 +48,6 @@ source. Keep credentials outside the repository and use synthetic fixtures in te
     )
     for relative in ("AGENTS.md", ".workspace/memory/MEMORY_INDEX.md"):
         _write(sidecar / relative)
-    _write(sidecar / "CLAUDE.md", CLAUDE_IMPORT)
     for relative in ("issues", ".workspace/work", ".workspace/transitions"):
         (sidecar / relative).mkdir(parents=True)
 
@@ -150,3 +149,15 @@ def test_workspace_reports_dirty_or_unsynchronized_sidecar(tmp_path: Path) -> No
     ahead = audit_workspace(root, library)
     sync_check = next(check for check in ahead.checks if check.code == "sidecar.synchronized")
     assert sync_check.status == "fail"
+
+
+def test_workspace_rejects_sidecar_claude_md(tmp_path: Path) -> None:
+    root, library = _complete_workspace(tmp_path)
+    assert library.development_workspace is not None
+    _write(root / library.development_workspace / "CLAUDE.md", "@AGENTS.md\n")
+
+    report = audit_workspace(root, library)
+    check = next(check for check in report.checks if check.code == "sidecar.no-claude-md")
+
+    assert check.status == "fail"
+    assert not report.passed
