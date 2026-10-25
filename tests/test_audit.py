@@ -116,7 +116,7 @@ class FakeGitHub:
             return None
         if path == ".github/workflows/ecosystem.yml":
             exception = {
-                "data": "python-315-polars",
+                "data": "python-315-data-databento-030",
                 "engineer": "python-315-polars",
                 "diagnostic": "python-315-scipy",
             }.get(repository)
@@ -371,14 +371,14 @@ def test_audit_accepts_active_version_scoped_prerelease_exception() -> None:
         ecosystem,
         ecosystem.library("data"),
         FakeGitHub(),
-        FakePyPI(compatible=False, version="0.1.2"),
-        FakeDocumentation(version="0.1.2"),
-        observed_at=datetime(2026, 8, 11, tzinfo=UTC),
+        FakePyPI(compatible=False, version="0.3.0"),
+        FakeDocumentation(version="0.3.0"),
+        observed_at=datetime(2026, 10, 25, tzinfo=UTC),
     )
 
     check = next(check for check in report.checks if check.code == "pypi.prerelease-install")
     assert check.status == "pass"
-    assert "python-315-polars" in check.message
+    assert "python-315-data-databento-030" in check.message
 
 
 def test_audit_accepts_prerelease_wait_after_former_expiration() -> None:
@@ -387,9 +387,9 @@ def test_audit_accepts_prerelease_wait_after_former_expiration() -> None:
         ecosystem,
         ecosystem.library("data"),
         FakeGitHub(),
-        FakePyPI(compatible=False, version="0.1.2"),
-        FakeDocumentation(version="0.1.2"),
-        observed_at=datetime(2026, 10, 1, tzinfo=UTC),
+        FakePyPI(compatible=False, version="0.3.0"),
+        FakeDocumentation(version="0.3.0"),
+        observed_at=datetime(2026, 10, 25, tzinfo=UTC),
     )
 
     check = next(check for check in report.checks if check.code == "pypi.prerelease-install")

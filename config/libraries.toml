@@ -52,20 +52,38 @@ review_triggers = ["python-3.15-final", "polars-release-after-1.44.2"]
 issue = "https://github.com/ml4t/ecosystem/issues/2"
 
 [[exceptions]]
+id = "python-315-data-databento-030"
+criterion = "python-3.15-prerelease"
+libraries = ["data"]
+affected_versions = ">=0.3,<0.4"
+rationale = "Databento 0.88.0 requires databento-dbn~=0.70.0, whose released wheels cannot satisfy the complete Data environment on CPython 3.15 final. Polars is no longer the demonstrated Data blocker."
+evidence = [
+    "https://github.com/ml4t/data/issues/37#issuecomment-6374129753",
+    "https://pypi.org/pypi/databento/0.88.0/json",
+    "https://pypi.org/pypi/databento-dbn/0.70.0/json",
+]
+user_impact = "Data 0.3 releases support Python 3.12 through 3.14 and retain Requires-Python <3.15. Core-only Python 3.15 probes do not qualify the complete distribution."
+mitigation = "Keep all Python 3.12-3.14 operating-system gates and the visible monthly Python 3.15 canary. Qualify the complete released dependency set on Linux, macOS and Windows before removing the upper bound."
+approver = "Stefan Jansen"
+review_triggers = ["released-databento-cp315-dependency-support"]
+issue = "https://github.com/ml4t/data/issues/37"
+
+[[exceptions]]
 id = "python-315-scipy"
 criterion = "python-3.15-prerelease"
 libraries = ["diagnostic"]
-affected_versions = ">=0.1.2,<0.2"
-rationale = "PyArrow 25.0.1 does not publish CPython 3.15 wheels, so the complete Diagnostic dependency set cannot install on CPython 3.15."
+affected_versions = ">=0.1.2,<0.3"
+rationale = "Current Diagnostic core dependencies install and import on CPython 3.15, including PyArrow 26. Full Diagnostic source, installed-artifact and three-operating-system qualification is pending. This is a bounded qualification deferral, not a missing-wheel claim."
 evidence = [
     "https://github.com/ml4t/diagnostic/issues/45",
-    "https://pypi.org/project/pyarrow/25.0.1/#files",
+    "https://pypi.org/project/pyarrow/26.0.0/#files",
 ]
-user_impact = "The distribution cannot be installed on Python 3.15 while the prerelease wait applies."
-mitigation = "Use Python 3.12 through 3.14 until the complete dependency set is qualified on Python 3.15."
+user_impact = "Diagnostic retains Requires-Python >=3.12,<3.15 and does not advertise Python 3.15 support. Qualified Python 3.12-3.14 releases may continue through the 0.2 line."
+mitigation = "Retain every Python 3.12-3.14 gate and run a visible monthly three-OS Python 3.15 candidate canary. Remove the upper bound and exception only after complete native and installed-artifact qualification."
 approver = "Stefan Jansen"
-review_triggers = ["python-3.15-final", "pyarrow-26"]
-issue = "https://github.com/ml4t/ecosystem/issues/2"
+expires_on = 2026-11-24
+review_triggers = ["diagnostic-python315-three-os-qualification-completed"]
+issue = "https://github.com/ml4t/diagnostic/issues/45"
 
 [[libraries]]
 key = "data"
@@ -75,7 +93,7 @@ import_package = "ml4t.data"
 docs_url = "https://www.ml4trading.io/docs/data/"
 local_checkout = "ml4t-data"
 development_workspace = "ml4t-data-dev"
-prerelease_exception = "python-315-polars"
+prerelease_exception = "python-315-data-databento-030"
 deprecated_identifiers = ["QLDM_DATA_ROOT", "QldmError"]
 
 [[libraries]]
