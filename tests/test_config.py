@@ -35,7 +35,7 @@ def test_load_repository_config() -> None:
     )
     assert config.policy.documentation_repository == "ml4t/website"
     assert config.policy.homepage_url == "https://www.ml4trading.io/"
-    assert config.library("data").prerelease_exception == "python-315-polars"
+    assert config.library("data").prerelease_exception == "python-315-data-databento-030"
     assert config.library("diagnostic").prerelease_exception == "python-315-scipy"
     assert config.library("backtest").prerelease_exception is None
     assert config.library("specs").development_workspace is None
@@ -70,7 +70,10 @@ def test_load_repository_config() -> None:
     assert diagnostic_exception.covers_version("0.1.5")
     assert diagnostic_exception.covers_version("0.1.6")
     assert diagnostic_exception.covers_version("0.1.7")
-    assert not diagnostic_exception.covers_version("0.2.0")
+    assert diagnostic_exception.covers_version("0.2.0.dev1")
+    assert diagnostic_exception.covers_version("0.2.0")
+    assert diagnostic_exception.covers_version("0.2.1.dev1")
+    assert not diagnostic_exception.covers_version("0.3.0.dev1")
 
 
 def test_unknown_library_raises() -> None:
@@ -191,7 +194,7 @@ def test_invalid_exception_config_rejected(tmp_path: Path, replacement: str, mes
         "review_triggers = []": (
             'review_triggers = ["python-3.15-final", "polars-release-after-1.44.2"]'
         ),
-        'affected_versions = "invalid"': 'affected_versions = ">=0.1.2,<0.2"',
+        'affected_versions = "invalid"': 'affected_versions = ">=0.1.2,<0.3"',
         'criterion = "other"': 'criterion = "python-3.15-prerelease"',
     }
     path = tmp_path / "invalid-exception.toml"
