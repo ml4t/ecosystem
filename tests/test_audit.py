@@ -732,8 +732,8 @@ def test_qualified_engineer_workflow_does_not_reactivate_retired_polars_wait() -
         config(),
         config().library("engineer"),
         QualifiedEngineerGitHub(),
-        FakePyPI(),
-        FakeDocumentation(),
+        FakePyPI(version="0.2.0"),
+        FakeDocumentation(version="0.2.0"),
     )
     check = next(c for c in report.checks if c.code == "workflow.prerelease-exception")
     assert check.status == "pass", check.message
