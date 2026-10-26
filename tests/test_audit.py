@@ -717,3 +717,23 @@ def test_invalid_or_prerelease_pypi_version_fails(version: str) -> None:
 
     check = next(check for check in report.checks if check.code == "pypi.stable-version")
     assert check.status == "fail"
+
+
+def test_qualified_engineer_workflow_does_not_reactivate_retired_polars_wait() -> None:
+    workflow = Path("tests/fixtures/engineer-python315-ecosystem.yml").read_text()
+
+    class QualifiedEngineerGitHub(FakeGitHub):
+        def content(self, owner: str, repository: str, path: str) -> str | None:
+            if repository == "engineer" and path == ".github/workflows/ecosystem.yml":
+                return workflow
+            return super().content(owner, repository, path)
+
+    report = audit_library(
+        config(),
+        config().library("engineer"),
+        QualifiedEngineerGitHub(),
+        FakePyPI(),
+        FakeDocumentation(),
+    )
+    check = next(c for c in report.checks if c.code == "workflow.prerelease-exception")
+    assert check.status == "pass", check.message

@@ -714,15 +714,19 @@ def _check_repository(
     exception_match = PRERELEASE_EXCEPTION.search(ecosystem_workflow)
     declared_exception = exception_match.group(1) if exception_match else None
     expected_exception = library.prerelease_exception
+    full_qualification = declared_exception is None and _uses_pinned_central_qualification(
+        ecosystem_workflow
+    )
     report.checks.append(
         _result(
             "workflow.prerelease-exception",
-            declared_exception == expected_exception,
+            full_qualification
+            or (declared_exception is not None and declared_exception == expected_exception),
             (
                 f"Workflow declares expected prerelease exception {expected_exception}"
                 if expected_exception is not None and declared_exception == expected_exception
-                else "Workflow correctly requires prerelease qualification"
-                if expected_exception is None and declared_exception is None
+                else "Workflow requires full prerelease qualification without an exception"
+                if full_qualification
                 else (
                     f"Workflow prerelease exception {declared_exception!r} does not match "
                     f"configured exception {expected_exception!r}"
