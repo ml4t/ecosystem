@@ -93,7 +93,7 @@ local work state. It must have:
 
 - a configured `origin` whose repository visibility has been verified as private;
 - a clean worktree synchronized with its upstream before handoff;
-- root `AGENTS.md` and the one-line `CLAUDE.md` import;
+- root `AGENTS.md` and no `CLAUDE.md`;
 - `issues/` for local drafts that are not yet accepted work;
 - `.workspace/work/` for active specifications and plans;
 - `.workspace/transitions/` for session handoffs; and
