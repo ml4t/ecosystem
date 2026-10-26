@@ -32,6 +32,20 @@ a substantive response or applies `status: pending-review` and states the next r
 
 Library-specific labels may extend the vocabulary but may not redefine shared labels.
 
+`uv run ml4t-ecosystem monitor --output status/monitor.json` collects the full open queues in
+`config/maintained-repositories.toml`, using each repository's explicit GitHub owner and name.
+This maintenance inventory includes the seven current libraries and four Reloaded libraries;
+`config/libraries.toml` continues to define only the seven-library qualification scope.
+The existing audit workflow runs nominally hourly. Each report records when evidence was actually
+collected, complete paginated queues, and current PR head/base revisions. Collection is metadata
+inspection, not a code review or executed verification.
+
+The command exits zero when collection is complete with no response-target findings, one when
+findings need attention, and two when API evidence is incomplete. An incomplete repository must not
+be interpreted as an empty queue or used to infer that an item closed. The report retains evidence
+errors alongside successfully collected repositories. Downstream advisory tools must key items by
+full repository identity and number, and re-evaluate a changed PR revision before reusing a review.
+
 ## Implementation
 
 Every non-automated user-visible change and defect fix has an associated issue. Its pull request uses

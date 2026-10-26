@@ -82,7 +82,10 @@ def test_monitor_command(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Non
     finding = MonitorFinding("data", 1, "issue", "overdue", "message", "url")
     monkeypatch.setenv("GITHUB_TOKEN", "test-token")
     monkeypatch.setattr("ml4t_ecosystem.cli.GitHubClient", Client)
-    monkeypatch.setattr("ml4t_ecosystem.cli.monitor_all", lambda config, github: [finding])
+    monkeypatch.setattr(
+        "ml4t_ecosystem.cli.collect_queues",
+        lambda config, repositories, github: {"complete": True, "findings": [finding.to_dict()]},
+    )
     output = tmp_path / "monitor.json"
 
     assert main(["monitor", "--output", str(output)]) == 1
