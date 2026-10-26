@@ -1,4 +1,4 @@
-# Decision 0016: Development sidecars drop CLAUDE.md
+# Decision 0017: Development sidecars drop CLAUDE.md
 
 **Status**: Accepted
 **Date**: 2026-10-23
