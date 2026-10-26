@@ -14,7 +14,7 @@ from ml4t_ecosystem.audit import audit_all
 from ml4t_ecosystem.clients import DocumentationClient, GitHubClient, PyPIClient
 from ml4t_ecosystem.config import load_config
 from ml4t_ecosystem.labels import load_labels, sync_labels
-from ml4t_ecosystem.monitor import monitor_all
+from ml4t_ecosystem.maintenance import collect_queues, load_maintained_repositories
 from ml4t_ecosystem.status import write_current_status
 from ml4t_ecosystem.templates import sync_templates
 from ml4t_ecosystem.workspaces import audit_workspaces
@@ -38,11 +38,17 @@ def _parser() -> argparse.ArgumentParser:
     workspaces = subparsers.add_parser(
         "audit-workspaces", help="check local release checkouts and development sidecars"
     )
-    workspaces.add_argument("--root", type=Path, default=ROOT)
+    workspaces.add_argument("--root", type=Path, default=ROOT.parent)
     workspaces.add_argument("--output", type=Path)
 
     monitor = subparsers.add_parser("monitor", help="check issue and pull-request response targets")
     monitor.add_argument("--output", type=Path)
+    monitor.add_argument(
+        "--inventory",
+        type=Path,
+        default=ROOT / "config/maintained-repositories.toml",
+        help="maintained owner/name inventory, separate from stable qualification",
+    )
 
     snapshot = subparsers.add_parser("snapshot", help="retain validated current status")
     snapshot.add_argument("--status-dir", type=Path, default=ROOT / "status")
@@ -81,12 +87,12 @@ def _monitor(args: argparse.Namespace) -> int:
         raise SystemExit("GITHUB_TOKEN is required for accurate maintainer-response monitoring")
     github = GitHubClient(token=token)
     try:
-        findings = monitor_all(config, github)
+        report = collect_queues(config, load_maintained_repositories(args.inventory), github)
     finally:
         github.close()
     payload = (
         json.dumps(
-            {"schema_version": 1, "findings": [finding.to_dict() for finding in findings]},
+            report,
             indent=2,
             sort_keys=True,
         )
@@ -97,7 +103,9 @@ def _monitor(args: argparse.Namespace) -> int:
         args.output.write_text(payload, encoding="utf-8")
     else:
         print(payload, end="")
-    return 1 if findings else 0
+    if not report["complete"]:
+        return 2
+    return 1 if report["findings"] else 0
 
 
 def _audit_workspaces(args: argparse.Namespace) -> int:

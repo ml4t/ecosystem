@@ -1,4 +1,4 @@
-# Ignore everything by default. This working tree contains independent repositories.
+# Ignore everything except the public ecosystem policy and qualification files.
 /*
 
 # Files owned by ml4t/ecosystem.

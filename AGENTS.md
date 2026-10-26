@@ -20,6 +20,10 @@ library's code in that library's repository, following its own `AGENTS.md` and `
 stable-library qualification. Each library's `docs/book-guide/index.md` maps book chapters to its
 public API.
 
+`config/maintained-repositories.toml` separately covers queue monitoring for these seven libraries
+and the four Reloaded repositories. It does not extend stable qualification. `CONTRIBUTING.md`
+applies to both groups.
+
 ## Repository layout
 
 - `CONTRIBUTING.md`: how to propose a change; `SECURITY.md`: private vulnerability reporting.

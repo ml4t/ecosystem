@@ -98,7 +98,6 @@ def monitor_library(
 ) -> list[MonitorFinding]:
     """Return current response-target findings for a library."""
     observed = now or datetime.now(UTC)
-    findings: list[MonitorFinding] = []
     try:
         items = github.open_issues(config.owner, library.repository)
     except EvidenceError as error:
@@ -113,6 +112,22 @@ def monitor_library(
             )
         ]
 
+    return monitor_items(
+        config, library.key, config.owner, library.repository, github, items, observed
+    )
+
+
+def monitor_items(
+    config: EcosystemConfig,
+    key: str,
+    owner: str,
+    repository: str,
+    github: MonitorGitHub,
+    items: list[dict[str, Any]],
+    observed: datetime,
+) -> list[MonitorFinding]:
+    """Evaluate an already collected queue with its actual repository owner."""
+    findings: list[MonitorFinding] = []
     for item in items:
         number = item.get("number")
         if not isinstance(number, int):
@@ -124,9 +139,7 @@ def monitor_library(
             created = _parse_timestamp(item.get("created_at"))
         except ValueError:
             findings.append(
-                MonitorFinding(
-                    library.key, number, kind, "monitor.timestamp", "Missing creation time", url
-                )
+                MonitorFinding(key, number, kind, "monitor.timestamp", "Missing creation time", url)
             )
             continue
         age_minutes = (observed - created).total_seconds() / 60
@@ -134,7 +147,7 @@ def monitor_library(
         if age_minutes > config.policy.classification_target_minutes and not _classified(labels):
             findings.append(
                 MonitorFinding(
-                    library.key,
+                    key,
                     number,
                     kind,
                     "monitor.classification-overdue",
@@ -147,21 +160,19 @@ def monitor_library(
         if elapsed_business_days <= config.policy.response_target_business_days:
             continue
         try:
-            comments = github.issue_comments(config.owner, library.repository, number)
+            comments = github.issue_comments(owner, repository, number)
             responses = list(comments)
             if is_pull:
-                responses.extend(github.pull_reviews(config.owner, library.repository, number))
+                responses.extend(github.pull_reviews(owner, repository, number))
         except EvidenceError as error:
-            findings.append(
-                MonitorFinding(library.key, number, kind, "monitor.evidence", str(error), url)
-            )
+            findings.append(MonitorFinding(key, number, kind, "monitor.evidence", str(error), url))
             continue
         responded = _maintainer_response(responses, config.policy.maintainer_logins)
         pending = "status: pending-review" in labels and _pending_review_has_date(item, comments)
         if not responded and not pending:
             findings.append(
                 MonitorFinding(
-                    library.key,
+                    key,
                     number,
                     kind,
                     "monitor.response-overdue",
