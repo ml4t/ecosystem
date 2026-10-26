@@ -12,8 +12,10 @@ issues. It does not duplicate an owning library's implementation issue.
 
 The [contribution policy](https://github.com/ml4t/ecosystem/blob/main/CONTRIBUTING.md) applies to
 the current ML4T and maintained Reloaded libraries. Each issue describes one problem or coherent
-change; unrelated problems require separate issues. Each PR addresses its owning issue. A bundle
-of unrelated fixes is not made focused by collecting them in one issue.
+change; unrelated problems require separate issues. External PRs normally address one owning issue.
+Maintainer-directed work may close several related issues in one bounded PR under the contribution
+policy's maintainer-directed batching exception. A bundle of unrelated fixes is not made focused by
+collecting them in one issue. Implementation steps do not each need a separate issue or PR.
 
 All libraries provide compatible forms for bugs, features, and documentation problems. Intake
 records the affected version, environment, observed and expected behavior, reproduction evidence
