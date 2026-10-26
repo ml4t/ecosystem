@@ -1,0 +1,23 @@
+# Captured from ml4t/engineer at f632cdf38dd75397794dfe63ce7fb8becaae0a92.
+name: Ecosystem qualification
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ecosystem-qualification-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  qualification:
+    permissions:
+      contents: read
+    uses: ml4t/ecosystem/.github/workflows/qualify-library.yml@066dc737a879faea51a5b8a900315441712ea89a # 2026-09-25 policy snapshot
+    with:
+      import-package: ml4t.engineer
