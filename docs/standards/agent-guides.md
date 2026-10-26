@@ -37,13 +37,15 @@ tracked files, so an absent nested guide means the root guide applies.
 
 ## Claude interoperability
 
-Public repositories do not track `CLAUDE.md`. A one-line `@AGENTS.md` include configures one tool but
-does not help a contributor understand the library. Public repositories also ignore `.claude/`,
-`.codex/`, and `.workspace/` so local configuration cannot be published by a broad Git add.
+No repository tracks `CLAUDE.md`, public or private. Claude Code reads `AGENTS.md` natively, and
+a `CLAUDE.md` in a directory replaces that native reading, so even a one-line `@AGENTS.md` include
+adds a second file to keep correct without helping anyone. Public repositories also ignore
+`.claude/`, `.codex/`, and `.workspace/` so local configuration cannot be published by a broad Git
+add.
 
-Each configured private development sidecar tracks `AGENTS.md` as its canonical instructions and a
-`CLAUDE.md` containing exactly `@AGENTS.md`. Sidecar instructions may describe local work, issue
-drafts, transitions, memory, and cross-repository coordination because the sidecar is private.
+Each configured private development sidecar tracks `AGENTS.md` as its canonical instructions.
+Sidecar instructions may describe local work, issue drafts, transitions, memory, and
+cross-repository coordination because the sidecar is private.
 
 ## Maintenance triggers
 

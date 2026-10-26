@@ -9,7 +9,6 @@ from pathlib import Path
 from ml4t_ecosystem.agent_orientation import nested_orientation_issues, orientation_issues
 from ml4t_ecosystem.models import CheckResult, EcosystemConfig, Library, WorkspaceReport
 
-CLAUDE_IMPORT = "@AGENTS.md\n"
 SIDECAR_DIRECTORIES = (
     "issues",
     ".workspace/work",
@@ -18,7 +17,6 @@ SIDECAR_DIRECTORIES = (
 )
 SIDECAR_FILES = (
     "AGENTS.md",
-    "CLAUDE.md",
     ".workspace/memory/MEMORY_INDEX.md",
 )
 
@@ -35,13 +33,6 @@ def _git(path: Path, arguments: Sequence[str]) -> tuple[int, str]:
         text=True,
     )
     return completed.returncode, completed.stdout.strip()
-
-
-def _has_exact_claude_import(path: Path) -> bool:
-    try:
-        return path.read_text(encoding="utf-8") == CLAUDE_IMPORT
-    except OSError:
-        return False
 
 
 def audit_workspace(root: Path, library: Library) -> WorkspaceReport:
@@ -105,20 +96,22 @@ def audit_workspace(root: Path, library: Library) -> WorkspaceReport:
         )
     )
     for relative in SIDECAR_FILES:
-        path = sidecar / relative
-        passed = _has_exact_claude_import(path) if relative == "CLAUDE.md" else path.is_file()
         code_path = relative.replace("/", ".").lstrip(".")
         report.checks.append(
             _result(
                 f"sidecar.file.{code_path}",
-                passed,
-                (
-                    "Development sidecar CLAUDE.md contains only @AGENTS.md"
-                    if relative == "CLAUDE.md"
-                    else f"Development sidecar file {relative} exists"
-                ),
+                (sidecar / relative).is_file(),
+                f"Development sidecar file {relative} exists",
             )
         )
+    claude_md = sidecar / "CLAUDE.md"
+    report.checks.append(
+        _result(
+            "sidecar.no-claude-md",
+            not (claude_md.exists() or claude_md.is_symlink()),
+            "Development sidecar has no CLAUDE.md, so Claude Code reads AGENTS.md",
+        )
+    )
     for relative in SIDECAR_DIRECTORIES:
         code_path = relative.replace("/", ".").lstrip(".")
         report.checks.append(
