@@ -1,0 +1,132 @@
+{
+  "source": "GitHub REST public responses, captured 2026-10-13; selected fields retained.",
+  "data": {
+    "repository": "ml4t/data",
+    "pages": [
+      [
+        {
+          "number": 80,
+          "title": "ci: enforce minimum package coverage",
+          "html_url": "https://github.com/ml4t/data/pull/80",
+          "state": "open",
+          "created_at": "2026-10-10T09:21:16Z",
+          "updated_at": "2026-10-13T00:29:12Z",
+          "labels": [
+            {
+              "name": "type: maintenance"
+            },
+            {
+              "name": "priority: normal"
+            },
+            {
+              "name": "status: accepted"
+            },
+            {
+              "name": "compatibility: none"
+            },
+            {
+              "name": "ecosystem"
+            }
+          ],
+          "user": {
+            "login": "stefan-jansen"
+          },
+          "body": "## Summary\n\n- set the package coverage floor to 85%, below the fresh 85.98% baseline\n- add a dedicated pull-request coverage job\n- enforce the same coverage lane during release qualification\n- make the README verification command match CI\n\n## Verification\n\n- focused release tests fail at 14.54%, proving the threshold can fail\n- full offline suite passes at 85.98% with 3,759 tests\n- Ruff, formatting, ty, actionlint, and diff checks pass\n\nCloses #79",
+          "comments": 0,
+          "pull_request": {
+            "url": "https://api.github.com/repos/ml4t/data/pulls/80",
+            "html_url": "https://github.com/ml4t/data/pull/80",
+            "diff_url": "https://github.com/ml4t/data/pull/80.diff",
+            "patch_url": "https://github.com/ml4t/data/pull/80.patch",
+            "merged_at": null
+          }
+        }
+      ],
+      [
+        {
+          "number": 79,
+          "title": "Enforce the documented coverage threshold in CI",
+          "html_url": "https://github.com/ml4t/data/issues/79",
+          "state": "open",
+          "created_at": "2026-10-10T09:18:48Z",
+          "updated_at": "2026-10-13T00:29:08Z",
+          "labels": [
+            {
+              "name": "type: maintenance"
+            },
+            {
+              "name": "priority: normal"
+            },
+            {
+              "name": "status: accepted"
+            },
+            {
+              "name": "compatibility: none"
+            },
+            {
+              "name": "ecosystem"
+            }
+          ],
+          "user": {
+            "login": "stefan-jansen"
+          },
+          "body": "## Problem\n\nThe repository configures coverage collection and documents a local report, but CI and release qualification run pytest without coverage and `pyproject.toml` defines no enforced minimum. The ecosystem standard requires the test lane to enforce its coverage threshold.\n\n## Acceptance criteria\n\n- `pyproject.toml` defines a conservative threshold supported by a fresh full-suite run.\n- Pull-request CI and release quality collect package coverage and fail below that threshold.\n- Contributor and agent verification commands match the enforced lane.\n- A focused test proves the configured threshold is active.\n- Ruff, ty, tests, resource warnings, strict docs, build, actionlint, and pre-commit pass.",
+          "comments": 0
+        }
+      ]
+    ],
+    "pulls": {
+      "80": {
+        "number": 80,
+        "state": "open",
+        "html_url": "https://github.com/ml4t/data/pull/80",
+        "draft": false,
+        "head": {
+          "sha": "d826295a022746638216172d1d9a31244eac9d5e"
+        },
+        "base": {
+          "sha": "18551543395368ad9c48a47bdeb1ca6d604c382f"
+        },
+        "mergeable_state": "clean"
+      }
+    }
+  },
+  "empyrical": {
+    "repository": "stefan-jansen/empyrical-reloaded",
+    "pages": [
+      [
+        {
+          "number": 68,
+          "title": "Select supported tox environments in CI workflows",
+          "html_url": "https://github.com/stefan-jansen/empyrical-reloaded/issues/68",
+          "state": "open",
+          "created_at": "2026-10-10T09:01:20Z",
+          "updated_at": "2026-10-10T09:01:20Z",
+          "labels": [],
+          "user": {
+            "login": "stefan-jansen"
+          },
+          "body": "The CI workflows select tox environments that cannot satisfy the package's supported dependencies.\n\nThe Python 3.12 matrix includes pandas 1.5, 2.0 and 2.1 even though pyproject.toml requires pandas >=2.2.2 on Python >=3.12. A current public run of #66 fails while trying to build old pandas with missing pkg_resources; its pandas21 environment also ends up testing a different installed version after package dependency installation. Evidence: https://github.com/stefan-jansen/empyrical-reloaded/actions/runs/38039601555/job/114177029798 .\n\nThe scheduled unit_tests.yml additionally calls `tox -e ci_full_tests`, which is not defined in the tox configuration.\n\nLimit Python 3.12's NumPy 1 environments to pandas 2.2, retain the older pandas coverage on Python 3.10/3.11, and have the scheduled workflow select the configured environments using the existing tox-gh-actions mapping. Verify actual environment creation and test execution, not just configuration text. Keep numerical/test compatibility fixes in their separate PRs.\n\nAI assistance: Codex inspected the actual CI job log, reproduced the undefined environment selection and drafted this issue under maintainer authorization.\n",
+          "comments": 0
+        }
+      ],
+      [
+        {
+          "number": 67,
+          "title": "Make performance-attribution concat sorting explicit for pandas 3",
+          "html_url": "https://github.com/stefan-jansen/empyrical-reloaded/issues/67",
+          "state": "open",
+          "created_at": "2026-10-10T08:57:19Z",
+          "updated_at": "2026-10-10T08:57:19Z",
+          "labels": [],
+          "user": {
+            "login": "stefan-jansen"
+          },
+          "body": "On pandas 3, the public perf_attrib workflow emits a warning that implicit sorting of DatetimeIndex objects during concat is deprecated. #53 and #55 both propose making sort=False explicit at the final concatenation.\n\nMain efe60664f0abd957074b0751ef82228594a659a5 reproduces the warning in the existing performance-attribution fixture regression with Python 3.12.11 / pandas 3.0.6. Treat the warning as an error while retaining the expected output and alignment assertions, then verify the focused fix passes current and older pandas.\n\nThe change must preserve the dates, exposures and attribution values; it is separate from rolling results and SciPy test warning compatibility.\n\nAI assistance: Codex reproduced the baseline warning, inspected #53/#55 and drafted this issue under maintainer authorization.\n",
+          "comments": 0
+        }
+      ]
+    ],
+    "pulls": {}
+  }
+}
