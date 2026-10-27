@@ -7,6 +7,11 @@ on:
         description: Public Python import package
         required: true
         type: string
+      candidate-version:
+        description: Explicit candidate version for every build; wheel metadata must match
+        required: false
+        type: string
+        default: ""
       prerelease-test-paths:
         description: JSON array of core test paths to run on the next CPython prerelease
         required: false
@@ -24,6 +29,8 @@ permissions:
 jobs:
   qualify:
     name: ${{ matrix.os }} / Python ${{ matrix.python }}
+    env:
+      ML4T_CANDIDATE_VERSION: ${{ inputs.candidate-version }}
     strategy:
       fail-fast: false
       matrix:
@@ -35,7 +42,7 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           repository: ml4t/ecosystem
-          ref: 728da8e1175c4ad55c5feb6365d195a4f6a045c0
+          ref: 71f184b28d4761f363bf33bb7e538e59d896c4ae
           path: .ecosystem
       - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
         with:
@@ -47,6 +54,8 @@ jobs:
 
   prerelease:
     name: ${{ matrix.os }} / Python 3.15 prerelease
+    env:
+      ML4T_CANDIDATE_VERSION: ${{ inputs.candidate-version }}
     if: ${{ inputs.prerelease-exception == '' }}
     strategy:
       fail-fast: false
@@ -62,7 +71,7 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           repository: ml4t/ecosystem
-          ref: 728da8e1175c4ad55c5feb6365d195a4f6a045c0
+          ref: 71f184b28d4761f363bf33bb7e538e59d896c4ae
           path: .ecosystem
       - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
         with:
@@ -77,6 +86,8 @@ jobs:
 
   prerelease-exception:
     name: Validate Python 3.15 exception
+    env:
+      ML4T_CANDIDATE_VERSION: ${{ inputs.candidate-version }}
     if: ${{ inputs.prerelease-exception != '' }}
     runs-on: ubuntu-latest
     steps:
@@ -87,7 +98,7 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           repository: ml4t/ecosystem
-          ref: 728da8e1175c4ad55c5feb6365d195a4f6a045c0
+          ref: 71f184b28d4761f363bf33bb7e538e59d896c4ae
           path: .ecosystem
       - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
         with:

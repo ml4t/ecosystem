@@ -30,6 +30,14 @@ ROOT = Path(__file__).resolve().parents[1]
         ("diagnostic", "0.3.0.dev1", "ml4t/diagnostic", False, "does not cover version"),
         ("diagnostic", "0.3.0", "ml4t/diagnostic", False, "does not cover version"),
         ("diagnostic", "0.2.0", "ml4t/engineer", False, "does not cover library"),
+        ("live", "0.2.0.dev1", "ml4t/live", True, "covers live 0.2.0.dev1"),
+        ("live", "0.2.0", "ml4t/live", True, "covers live 0.2.0"),
+        ("live", "0.2.99", "ml4t/live", True, "covers live 0.2.99"),
+        ("live", "0.1.3", "ml4t/live", False, "does not cover version"),
+        ("live", "0.3.0.dev1", "ml4t/live", False, "does not cover version"),
+        ("live", "0.3.0", "ml4t/live", False, "does not cover version"),
+        ("live", "0.2.0", "ml4t/engineer", False, "does not cover library"),
+        ("live", "0.2.0", "other/live", False, "not a managed library"),
     ],
 )
 def test_built_candidate_cannot_escape_current_exception_scopes(
@@ -94,3 +102,16 @@ def test_missing_dependency_evidence_cannot_authorize_a_new_data_release(tmp_pat
     broken.write_text(text, encoding="utf-8")
     with pytest.raises(ValueError, match="evidence must be a non-empty string list"):
         load_config(broken)
+
+
+def test_live_calendar_wait_cannot_continue_after_its_review_deadline() -> None:
+    config = load_config(ROOT / "config/libraries.toml")
+    arguments = {
+        "exception_id": "python-315-live-calendar-020",
+        "library_key": "live",
+        "repository": "ml4t/live",
+        "package_version": "0.2.0",
+    }
+    validate_exception(config, **arguments, on_date=date(2026, 11, 26))
+    with pytest.raises(ValueError, match="expired on 2026-11-26"):
+        validate_exception(config, **arguments, on_date=date(2026, 11, 27))
