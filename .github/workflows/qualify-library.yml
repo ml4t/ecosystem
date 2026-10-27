@@ -42,7 +42,7 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           repository: ml4t/ecosystem
-          ref: 60bf75924a5f20d42d66cee42c983f4fb6ecab5d
+          ref: 71f184b28d4761f363bf33bb7e538e59d896c4ae
           path: .ecosystem
       - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
         with:
@@ -71,7 +71,7 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           repository: ml4t/ecosystem
-          ref: 60bf75924a5f20d42d66cee42c983f4fb6ecab5d
+          ref: 71f184b28d4761f363bf33bb7e538e59d896c4ae
           path: .ecosystem
       - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
         with:
@@ -98,7 +98,7 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           repository: ml4t/ecosystem
-          ref: 60bf75924a5f20d42d66cee42c983f4fb6ecab5d
+          ref: 71f184b28d4761f363bf33bb7e538e59d896c4ae
           path: .ecosystem
       - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
         with:

@@ -33,7 +33,7 @@ def test_shared_qualification_uses_current_policy_snapshot() -> None:
         Path(__file__).parents[1] / ".github" / "workflows" / "qualify-library.yml"
     ).read_text(encoding="utf-8")
 
-    policy_snapshot = "60bf75924a5f20d42d66cee42c983f4fb6ecab5d"
+    policy_snapshot = "71f184b28d4761f363bf33bb7e538e59d896c4ae"
     refs = re.findall(r"^\s+ref: ([0-9a-f]{40})$", workflow, flags=re.MULTILINE)
 
     assert refs == [policy_snapshot, policy_snapshot, policy_snapshot]
