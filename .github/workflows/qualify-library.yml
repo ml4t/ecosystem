@@ -63,7 +63,6 @@ jobs:
     name: ${{ matrix.os }} / Python 3.15 prerelease
     env:
       ML4T_CANDIDATE_VERSION: ${{ inputs.candidate-version }}
-    if: ${{ inputs.prerelease-exception == '' }}
     strategy:
       fail-fast: false
       matrix:
@@ -74,6 +73,7 @@ jobs:
         with:
           fetch-depth: ${{ inputs.fetch-depth }}
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        if: ${{ inputs.prerelease-exception == '' }}
         with:
           python-version: "3.15.0-rc.1"
           allow-prereleases: true
@@ -86,12 +86,23 @@ jobs:
         with:
           version: "0.10.9"
           enable-cache: true
-      - run: >-
+      - name: Qualify Python 3.15 prerelease
+        if: ${{ inputs.prerelease-exception == '' }}
+        run: >-
           uv run --project .ecosystem python .ecosystem/scripts/qualification.py
           --python 3.15.0rc1 --import-package ${{ inputs.import-package }} --prerelease
           --preinstalled-python
         env:
           ML4T_PRERELEASE_TESTS_JSON: ${{ inputs.prerelease-test-paths }}
+      - name: Validate approved Python 3.15 exception for this candidate
+        if: ${{ inputs.prerelease-exception != '' }}
+        run: >-
+          uv run --project .ecosystem --python 3.12
+          python .ecosystem/scripts/validate_exception.py
+          --config .ecosystem/config/libraries.toml
+          --exception-id ${{ inputs.prerelease-exception }}
+          --repository ${{ github.repository }}
+          --package-root .
 
   prerelease-exception:
     name: Validate Python 3.15 exception
