@@ -7,6 +7,11 @@ on:
         description: Public Python import package
         required: true
         type: string
+      candidate-version:
+        description: Explicit candidate version for every build; wheel metadata must match
+        required: false
+        type: string
+        default: ""
       prerelease-test-paths:
         description: JSON array of core test paths to run on the next CPython prerelease
         required: false
@@ -24,6 +29,8 @@ permissions:
 jobs:
   qualify:
     name: ${{ matrix.os }} / Python ${{ matrix.python }}
+    env:
+      ML4T_CANDIDATE_VERSION: ${{ inputs.candidate-version }}
     strategy:
       fail-fast: false
       matrix:
@@ -47,6 +54,8 @@ jobs:
 
   prerelease:
     name: ${{ matrix.os }} / Python 3.15 prerelease
+    env:
+      ML4T_CANDIDATE_VERSION: ${{ inputs.candidate-version }}
     if: ${{ inputs.prerelease-exception == '' }}
     strategy:
       fail-fast: false
@@ -77,6 +86,8 @@ jobs:
 
   prerelease-exception:
     name: Validate Python 3.15 exception
+    env:
+      ML4T_CANDIDATE_VERSION: ${{ inputs.candidate-version }}
     if: ${{ inputs.prerelease-exception != '' }}
     runs-on: ubuntu-latest
     steps:

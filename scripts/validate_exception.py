@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import argparse
+import os
 import subprocess
 import tempfile
-import zipfile
 from datetime import UTC, datetime
-from email.parser import Parser
 from pathlib import Path
 
+from ml4t_ecosystem.candidates import candidate_build_environment, wheel_candidate_version
 from ml4t_ecosystem.config import load_config
 from ml4t_ecosystem.exceptions import validate_exception
 
@@ -21,10 +21,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--exception-id", required=True)
     parser.add_argument("--repository", required=True)
     parser.add_argument("--package-root", type=Path, required=True)
+    parser.add_argument("--candidate-version", default=os.environ.get("ML4T_CANDIDATE_VERSION"))
     return parser.parse_args()
 
 
-def build_candidate_version(package_root: Path) -> str:
+def build_candidate_version(package_root: Path, candidate_version: str | None = None) -> str:
     """Build the candidate wheel and return its declared version."""
     root = package_root.resolve()
     if not (root / "pyproject.toml").is_file():
@@ -42,21 +43,12 @@ def build_candidate_version(package_root: Path) -> str:
                 str(root),
             ],
             check=True,
+            env=candidate_build_environment(candidate_version),
         )
         wheels = list(output.glob("*.whl"))
         if len(wheels) != 1:
             raise ValueError(f"candidate build produced {len(wheels)} wheels instead of one")
-        with zipfile.ZipFile(wheels[0]) as archive:
-            metadata_paths = [
-                name for name in archive.namelist() if name.endswith(".dist-info/METADATA")
-            ]
-            if len(metadata_paths) != 1:
-                raise ValueError("candidate wheel has no unique METADATA file")
-            metadata = Parser().parsestr(archive.read(metadata_paths[0]).decode("utf-8"))
-    version = metadata.get("Version")
-    if not version:
-        raise ValueError("candidate wheel metadata has no Version")
-    return version
+        return wheel_candidate_version(wheels[0], candidate_version)
 
 
 def main() -> None:
@@ -73,7 +65,7 @@ def main() -> None:
     )
     if library is None:
         raise ValueError(f"repository {args.repository} is not a managed library")
-    package_version = build_candidate_version(args.package_root)
+    package_version = build_candidate_version(args.package_root, args.candidate_version)
     exception = validate_exception(
         config,
         exception_id=args.exception_id,

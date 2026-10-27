@@ -11,6 +11,8 @@ import sys
 import tempfile
 from pathlib import Path
 
+from ml4t_ecosystem.candidates import candidate_build_environment, wheel_candidate_version
+
 
 def run(command: list[str], *, env: dict[str, str] | None = None) -> None:
     """Run a qualification command and fail immediately on errors."""
@@ -88,6 +90,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--import-package", required=True)
     parser.add_argument("--prerelease", action="store_true")
     parser.add_argument("--preinstalled-python", action="store_true")
+    parser.add_argument("--candidate-version", default=os.environ.get("ML4T_CANDIDATE_VERSION"))
     parser.add_argument(
         "--prerelease-tests-json",
         default=os.environ.get("ML4T_PRERELEASE_TESTS_JSON", '["tests"]'),
@@ -98,6 +101,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     """Qualify the library in the current working directory."""
     args = parse_args()
+    os.environ.update(candidate_build_environment(args.candidate_version))
     prerelease_args = dependency_prerelease_args(args.prerelease)
     install = python_install_command(args.python, preinstalled=args.preinstalled_python)
     if install is not None:
@@ -114,6 +118,7 @@ def main() -> int:
     wheels = sorted(Path("dist").glob("*.whl"), key=lambda path: path.stat().st_mtime)
     if not wheels:
         raise RuntimeError("uv build did not produce a wheel")
+    wheel_candidate_version(wheels[-1], args.candidate_version)
     with tempfile.TemporaryDirectory(prefix="ml4t-qualification-") as temporary:
         environment = Path(temporary)
         run(venv_command(args.python, environment))

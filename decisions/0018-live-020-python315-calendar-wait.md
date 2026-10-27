@@ -63,3 +63,22 @@ for the upstream wait; the runtime integration remains owned by Live issue 145 a
 
 The existing built-candidate validator enforces the library, repository, version and expiry scope.
 No shared validator, supported matrix or release criterion is weakened.
+
+## Explicit qualification candidate identity
+
+Live's unforced post-0.1.3 VCS build is `0.1.4.devN`, while the actual proposed next-minor
+qualification artifact is `0.2.0`. Do not broaden this exception to the 0.1 release line to
+accommodate that source identity.
+
+The shared workflow accepts an optional `candidate-version` input. Propagate it consistently to
+stable, prerelease and exception jobs. The normal build backend receives the requested version;
+read the resulting wheel's actual `METADATA` and reject a backend that ignores the request. The
+exception is checked against that actual built version, not just the supplied string. Existing
+callers without an explicit input retain their current version derivation.
+
+Native temporary VCS repositories reproduce the published-v0.1.3/next-commit boundary. The unforced
+0.1.4 development build is rejected, the actual 0.2.0 candidate passes, 0.3.0 is rejected, and a
+backend that emits 0.1.3 despite a 0.2.0 request is rejected. A complete real qualification command
+also resolves dependencies, checks source, runs a version-asserting test, builds and installs the
+requested 0.2.0 artifact in a separate environment. This prevents exception validation and the
+normal qualification jobs from silently checking different package identities.
