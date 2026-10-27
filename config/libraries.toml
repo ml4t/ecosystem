@@ -85,6 +85,26 @@ expires_on = 2026-11-24
 review_triggers = ["diagnostic-python315-three-os-qualification-completed"]
 issue = "https://github.com/ml4t/diagnostic/issues/45"
 
+[[exceptions]]
+id = "python-315-live-calendar-020"
+criterion = "python-3.15-prerelease"
+libraries = ["live"]
+affected_versions = ">=0.2.0.dev0,<0.3"
+rationale = "Live's strict public HKEX calendar workflow fails in exchange-calendars 4.13.2 with NumPy 2.5.4 on CPython 3.15 final: generic-unit datetime arithmetic raises a DeprecationWarning. NumPy 2.4.6 avoids that operation's warning but only advertises Python 3.11-3.14 support and fails import in the actual Windows 3.15 job. This is a calendar dependency compatibility wait, not a claim of incorrect schedule values or missing NumPy 3.15 wheels."
+evidence = [
+    "https://github.com/ml4t/ecosystem/issues/2",
+    "https://github.com/ml4t/live/actions/runs/40421184735/job/121915993276",
+    "https://github.com/gerrymanoim/exchange_calendars/blob/4.13.2/exchange_calendars/exchange_calendar_xhkg.py",
+    "https://github.com/numpy/numpy/releases/tag/v2.4.6",
+    "https://github.com/numpy/numpy/releases/tag/v2.5.4",
+]
+user_impact = "Live 0.2 supports Python 3.12-3.14 with truthful Requires-Python <3.15 and its qualified NumPy <2.5 and pandas <3.1 bounds; Python 3.15 is not supported while the wait applies. Published Live 0.1.3 and other libraries' compatibility remain unchanged."
+mitigation = "Retain every supported OS/Python, artifact, provider and strict-warning gate. Run a visible monthly three-OS Python 3.15 canary resolving all declared dependencies separately and exercising the public Hong Kong calendar plus explicitly unsupported source workflows. Do not suppress warnings or substitute a historically different calendar provider. Complete normal installed-artifact and full-source qualification on all three operating systems before removing the bound."
+approver = "ML4T maintainers (delegated compatibility review)"
+expires_on = 2026-11-26
+review_triggers = ["exchange-calendars-release-after-4.13.2", "pandas-market-calendars-release-after-5.5.0", "numpy-release-after-2.5.4", "live-python315-three-os-qualification-completed"]
+issue = "https://github.com/ml4t/ecosystem/issues/2"
+
 [[libraries]]
 key = "data"
 repository = "data"
@@ -131,6 +151,7 @@ import_package = "ml4t.live"
 docs_url = "https://www.ml4trading.io/docs/live/"
 local_checkout = "ml4t-live"
 development_workspace = "ml4t-live-dev"
+prerelease_exception = "python-315-live-calendar-020"
 
 [[libraries]]
 key = "diagnostic"
