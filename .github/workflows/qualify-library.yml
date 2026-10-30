@@ -73,10 +73,11 @@ jobs:
         with:
           fetch-depth: ${{ inputs.fetch-depth }}
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        id: python315
         if: ${{ inputs.prerelease-exception == '' }}
         with:
-          python-version: "3.15.0-rc.1"
-          allow-prereleases: true
+          python-version: "3.15"
+          allow-prereleases: false
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           repository: ml4t/ecosystem
@@ -90,7 +91,8 @@ jobs:
         if: ${{ inputs.prerelease-exception == '' }}
         run: >-
           uv run --project .ecosystem python .ecosystem/scripts/qualification.py
-          --python 3.15.0rc1 --import-package ${{ inputs.import-package }} --prerelease
+          --python "${{ steps.python315.outputs.python-path }}"
+          --import-package ${{ inputs.import-package }} --prerelease
           --preinstalled-python
         env:
           ML4T_PRERELEASE_TESTS_JSON: ${{ inputs.prerelease-test-paths }}
