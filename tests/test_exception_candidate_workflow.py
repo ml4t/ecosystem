@@ -87,9 +87,9 @@ def test_diagnostic_qualification_deferral_cannot_continue_after_review_deadline
         "repository": "ml4t/diagnostic",
         "package_version": "0.2.0",
     }
-    validate_exception(config, **arguments, on_date=date(2026, 11, 24))
-    with pytest.raises(ValueError, match="expired on 2026-11-24"):
-        validate_exception(config, **arguments, on_date=date(2026, 11, 25))
+    validate_exception(config, **arguments, on_date=date(2026, 12, 31))
+    with pytest.raises(ValueError, match="expired on 2026-12-31"):
+        validate_exception(config, **arguments, on_date=date(2027, 1, 1))
 
 
 def test_missing_dependency_evidence_cannot_authorize_a_new_data_release(tmp_path: Path) -> None:
